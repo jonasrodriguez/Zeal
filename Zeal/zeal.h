@@ -60,6 +60,7 @@ class ZealService {
   std::unique_ptr<class Alarm> alarm = nullptr;
   std::unique_ptr<class Melody> melody = nullptr;
   std::unique_ptr<class AutoFire> autofire = nullptr;
+  std::unique_ptr<class AutoAbility> auto_ability = nullptr;
   std::unique_ptr<class Netstat> netstat = nullptr;
   std::unique_ptr<class Tick> tick = nullptr;
   std::unique_ptr<class BuffTimers> buff_timers = nullptr;

@@ -10,6 +10,7 @@
 
 #include "alarm.h"
 #include "assist.h"
+#include "auto_ability.h"
 #include "autofire.h"
 #include "binds.h"
 #include "buff_timers.h"
@@ -137,6 +138,7 @@ ZealService::ZealService() {
   alarm = MakeCheckedUnique(Alarm);
   melody = MakeCheckedUnique(Melody);
   autofire = MakeCheckedUnique(AutoFire);
+  auto_ability = MakeCheckedUnique(AutoAbility);
   netstat = MakeCheckedUnique(Netstat);
   tick = MakeCheckedUnique(Tick);
   buff_timers = MakeCheckedUnique(BuffTimers);
