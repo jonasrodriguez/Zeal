@@ -113,18 +113,15 @@ bool RaidBarsManage::HandleCtrlClick(int index) {
 
   // Second Ctrl+Click: resolve destination group from the clicked index.
   DWORD dest_group = Zeal::GameStructures::RaidMember::kRaidUngrouped;
-
+  
   // Use the group label index map to identify which group was clicked
   for (int group_slot = 0; group_slot < static_cast<int>(bars.visible_group_index.size()); ++group_slot) {
-    if (index == bars.visible_group_index[group_slot]) {
-      // Clicked on a group label. Use this group slot as the destination.
-        dest_group = (group_slot == 12) ? Zeal::GameStructures::RaidMember::kRaidUngrouped : static_cast<DWORD>(group_slot);
-      break;
-    }
-    if (index > bars.visible_group_index[group_slot]) {
-      // Clicked on a member slot, not a group label. Use the previous group slot as the destination.
-      dest_group = static_cast<DWORD>(group_slot - 1);
-      break;
+
+    // Ignore non visible groups
+    if (bars.visible_group_index[group_slot] == -1) continue;
+
+    if (bars.visible_group_index[group_slot] <= index) {
+      dest_group = (group_slot == 12) ? Zeal::GameStructures::RaidMember::kRaidUngrouped : static_cast<DWORD>(group_slot);
     }
   }
 
