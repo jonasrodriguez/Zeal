@@ -92,7 +92,6 @@ class ZealService {
   std::unique_ptr<class NamedPipe> pipe = nullptr;
 
   std::unique_ptr<class AutoAbility> autoability = nullptr;
-  std::unique_ptr<class AutoMelee> automelee = nullptr;
 
  private:
   void AddCommands();  // Registers module dependent chat commands.
