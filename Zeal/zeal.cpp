@@ -12,6 +12,7 @@
 #include "assist.h"
 #include "autoability.h"
 #include "autofire.h"
+#include "automelee.h"
 #include "bandolier.h"
 #include "binds.h"
 #include "buff_timers.h"
@@ -145,6 +146,7 @@ ZealService::ZealService() {
   helm = MakeCheckedUnique(HelmManager);
   bandolier = MakeCheckedUnique(Bandolier);
   autoability = MakeCheckedUnique(AutoAbility);
+  automelee = MakeCheckedUnique(AutoMelee);
 
   // Adds DirectX (and UISkin for resource file paths) dependencies.
   target_ring = MakeCheckedUnique(TargetRing);

@@ -304,7 +304,10 @@
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
     <ClInclude Include="autoability.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="automelee.h">
+      <Filter>Header Files\hooks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -534,6 +537,9 @@
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
     <ClCompile Include="autoability.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="automelee.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>

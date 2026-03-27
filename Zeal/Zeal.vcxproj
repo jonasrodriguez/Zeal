@@ -69,6 +69,7 @@
     <ClInclude Include="assist.h" />
     <ClInclude Include="autoability.h" />
     <ClInclude Include="autofire.h" />
+    <ClInclude Include="automelee.h" />
     <ClInclude Include="bandolier.h" />
     <ClInclude Include="bitmap_font.h" />
     <ClInclude Include="operator_overloads.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="assist.cpp" />
     <ClCompile Include="autoability.cpp" />
     <ClCompile Include="autofire.cpp" />
+    <ClCompile Include="automelee.cpp" />
     <ClCompile Include="bandolier.cpp" />
     <ClCompile Include="bitmap_font.cpp" />
     <ClCompile Include="character_select.cpp" />
