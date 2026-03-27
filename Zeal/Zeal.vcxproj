@@ -67,6 +67,7 @@
   <ItemGroup>
     <ClInclude Include="alarm.h" />
     <ClInclude Include="assist.h" />
+    <ClInclude Include="autoability.h" />
     <ClInclude Include="autofire.h" />
     <ClInclude Include="bandolier.h" />
     <ClInclude Include="bitmap_font.h" />
@@ -153,7 +154,10 @@
   <ItemGroup>
     <ClCompile Include="alarm.cpp" />
     <ClCompile Include="assist.cpp" />
+    <ClCompile Include="autoability.cpp" />
     <ClCompile Include="autofire.cpp" />
+    <ClCompile Include="automelee.cpp" />
+    <ClCompile Include="automelee.h" />
     <ClCompile Include="bandolier.cpp" />
     <ClCompile Include="bitmap_font.cpp" />
     <ClCompile Include="character_select.cpp" />
