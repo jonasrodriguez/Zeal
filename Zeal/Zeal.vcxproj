@@ -156,8 +156,6 @@
     <ClCompile Include="assist.cpp" />
     <ClCompile Include="autoability.cpp" />
     <ClCompile Include="autofire.cpp" />
-    <ClCompile Include="automelee.cpp" />
-    <ClCompile Include="automelee.h" />
     <ClCompile Include="bandolier.cpp" />
     <ClCompile Include="bitmap_font.cpp" />
     <ClCompile Include="character_select.cpp" />
