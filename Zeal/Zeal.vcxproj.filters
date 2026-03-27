@@ -303,6 +303,9 @@
     <ClInclude Include="bandolier.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
+    <ClInclude Include="autoability.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -528,6 +531,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bandolier.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="autoability.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>
