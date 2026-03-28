@@ -32,24 +32,34 @@ void AutoMelee::tick() {
     return;
   }
 
-  // Only act while in combat (auto-attack active or a target is engaged).
-  if (!Zeal::Game::is_autoattacking() && !Zeal::Game::get_target()) return;
+  if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) {
+    return;
+  }
 
   ULONGLONG now = GetTickCount64();
 
-  // Attempt /doability 1 on its own timer.
+  // Attempt /doability 7
   if (now - last_ability_time >= kAbilityRetryMs) {
     last_ability_time = now;
-    ForwardCommand("/doability 1");
+    ForwardCommand("/doability 7");
   }
 
-  // Attempt the class-specific /useitem on its own (slower) timer.
+  // Attemp to /doability 1 (Hide)
+  if (active_mode == Mode::Rogue && now - last_hide_skill_time >= kHideSkillRetryMs) {
+    last_hide_skill_time = now;
+    Zeal::Game::do_autoattack(false);
+    ForwardCommand("/doability 1");
+    Zeal::Game::do_autoattack(true);
+  }
+
+  // Attempt the class-specific /use item on its own (slower) timer.
   if (now - last_use_item_time >= kUseItemRetryMs) {
     last_use_item_time = now;
-    if (active_mode == Mode::Rogue)
-      ForwardCommand("/useitem Coldain");
-    else if (active_mode == Mode::Monk)
-      ForwardCommand("/useitem Celestial Fists");
+
+    if (active_mode == Mode::Monk)
+      ForwardCommand("/use Celestial Fists");
+    else 
+      ForwardCommand("/use Ring of Dain Frostreaver IV");
   }
 }
 
