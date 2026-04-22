@@ -309,6 +309,12 @@
     <ClInclude Include="automelee.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
+    <ClInclude Include="autocleric.h">
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="autochain.h">
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -540,6 +546,12 @@
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
     <ClCompile Include="automelee.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="autocleric.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="autochain.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>

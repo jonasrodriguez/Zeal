@@ -11,6 +11,8 @@
 #include "alarm.h"
 #include "assist.h"
 #include "autoability.h"
+#include "autocleric.h"
+#include "autochain.h"
 #include "autofire.h"
 #include "automelee.h"
 #include "bandolier.h"
@@ -145,8 +147,6 @@ ZealService::ZealService() {
   buff_timers = MakeCheckedUnique(BuffTimers);
   helm = MakeCheckedUnique(HelmManager);
   bandolier = MakeCheckedUnique(Bandolier);
-  autoability = MakeCheckedUnique(AutoAbility);
-  automelee = MakeCheckedUnique(AutoMelee);
 
   // Adds DirectX (and UISkin for resource file paths) dependencies.
   target_ring = MakeCheckedUnique(TargetRing);
@@ -173,6 +173,11 @@ ZealService::ZealService() {
   charselect = MakeCheckedUnique(CharacterSelect);  // Uses ui->zoneselect.
   spell_sets = MakeCheckedUnique(SpellSets);        // Uses ui->inputDialog.
   survey = MakeCheckedUnique(Survey);               // Uses UI manager and input dialog.
+
+  autoability = MakeCheckedUnique(AutoAbility);
+  automelee = MakeCheckedUnique(AutoMelee);
+  autocleric = MakeCheckedUnique(AutoCleric);
+  autochain = MakeCheckedUnique(AutoChain);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {
