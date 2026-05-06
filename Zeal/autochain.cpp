@@ -81,8 +81,8 @@ void AutoChain::handle_print_chat(const char *message, int color_index) {
 
   Zeal::Game::print_debug("AutoChain: Received chat message: %s", message);
 
-  // Expected format: "Go PlayerName CH a TargetName"
-  static const std::regex go_pattern(R"(Go (\S+) CH a (\S+)$)");
+  // Expected format: "GO PlayerName - CH a TargetName"
+  static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+))");
   std::cmatch match;
   if (!std::regex_search(message, match, go_pattern)) return;
 
@@ -94,45 +94,92 @@ void AutoChain::handle_print_chat(const char *message, int color_index) {
 
   if (!Zeal::String::compare_insensitive(player_name, self->Name)) return;
 
-  state = StartCasting;
+  state = AboutToCast;
   ch_target = target_name;
 }
 
 void AutoChain::tick() {
   if (!autochain) return;
 
-  ULONGLONG now = GetTickCount64();
-  if (now - last_ch_check < kCheckInterval) return;
-  last_ch_check = now;
-
-  if (state == StartCasting) {
-    Zeal::Game::print_chat("AutoChain: Detected 'Go' order for {}. Attempting to cast CH.", ch_target);
-
-    if (is_gem_ready(ch_gem)) {
-    } else {
-      Zeal::Game::print_chat("AutoChain: Complete Healing not ready. Will retry on next tick.");
-    }
-  }
-
-  state = Idle;  // Placeholder to reset state until full implementation.
-
-  // int hp_percent = (entity && entity->HpCurrent > 0 && entity->HpMax > 0) ? (entity->HpCurrent * 100) / entity->HpMax : 0;
-
-  /* if (!autocleric)
-    return;
-  if (!is_active) return;
-
-  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  ULONGLONG current_timestamp = GetTickCount64();
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
 
-  if (!Zeal::Game::is_in_game() || !self || !char_info) {
-    setEnabled(false, -1, -1, false);
-    return;
+  switch (state) { 
+    case AboutToCast: {
+      Zeal::Game::do_ooc("Casteando CH a " + ch_target + "(%n)");
+      Zeal::GameStructures::Entity *target = Zeal::Game::get_player_partial_name(ch_target.c_str());
+      if (!target) {
+        Zeal::Game::print_chat("AutoChain: Target '{}' not found.", ch_target);
+        state = Idle;
+        return;
+      }
+      Zeal::Game::set_target(target);
+
+      if (char_info->cast(ch_gem, char_info->MemorizedSpell[ch_gem], 0, -1)) {
+        casting_spell_id = char_info->MemorizedSpell[ch_gem];
+      }
+      start_ch_cast_timestamp = current_timestamp;
+      state = CheckCasting;
+      break;
+    }
+    case CheckCasting:
+      if (Zeal::Game::GetSpellCastingTime() != -1) {
+        if ((current_timestamp - start_ch_cast_timestamp) > 500) {
+          retry_count = 0;
+          state = Casting;
+        }
+      } else {
+        Zeal::Game::print_chat("AutoChain: Failed to cast CH on {}. Retrying...", ch_target);
+        Zeal::Game::do_ooc("Fizzle ??");
+        retry_count++;
+        state = RetryCasting;
+      }
+      break;
+    case Casting:
+      if (Zeal::Game::GetSpellCastingTime() != -1) {
+        casting_visible_timestamp = current_timestamp;
+        // Check if spell is halfway (5000)
+        if ((current_timestamp - start_ch_cast_timestamp) == 5000) {
+          Zeal::Game::do_ooc("CH al 50%");
+        } else if ((current_timestamp - start_ch_cast_timestamp) > 9000) {  // About to land CH (9 seconds)          
+          state = AboutToLand;
+        }
+      } else {
+        Zeal::Game::do_ooc("CH Interrumpido. SKIP ME!");
+        state = Idle;
+      }
+      break;
+    case AboutToLand: {
+      if (Zeal::Game::GetSpellCastingTime() != -1) {
+        // If target HP is over 75%, cancel CH by ducking
+        auto target = Zeal::Game::get_target();
+        if (target && target->HpCurrent > (target->HpMax * 0.75)) {
+          Zeal::Game::do_ooc(ch_target + " por encima del 75%. Cancelo CH");
+          Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+          self->ChangeStance(Stance::Sit);
+          state = Idle;
+        }
+      } else {
+        Zeal::Game::print_chat("AutoChain: CH landed on {}.", ch_target);
+        Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+        self->ChangeStance(Stance::Sit);
+        state = Idle;
+      }
+    }
+      break;
+    case RetryCasting:
+      if (retry_count > max_retries) {
+        Zeal::Game::do_ooc("No puedo castear CH. SKIP ME!");
+        retry_count = 0;
+        state = Idle;
+      } else {
+        state = AboutToCast;
+      }
+      break;
+    case Idle:
+    default:
+      return;
   }
-
-  if (!cast_pending) return;
-
-  attempt_cast();*/
 }
 
  /* Zeal::GameStructures::Entity get_target(std::string name) { /* 
