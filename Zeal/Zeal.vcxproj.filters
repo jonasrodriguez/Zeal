@@ -315,6 +315,9 @@
     <ClInclude Include="autochain.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
+    <ClInclude Include="chainlead.h">
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -552,6 +555,9 @@
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
     <ClCompile Include="autochain.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="chainlead.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>

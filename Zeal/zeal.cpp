@@ -20,6 +20,7 @@
 #include "buff_timers.h"
 #include "callbacks.h"
 #include "camera_mods.h"
+#include "chainlead.h"
 #include "character_select.h"
 #include "chat.h"
 #include "chatfilter.h"
@@ -178,6 +179,7 @@ ZealService::ZealService() {
   automelee = MakeCheckedUnique(AutoMelee);
   autocleric = MakeCheckedUnique(AutoCleric);
   autochain = MakeCheckedUnique(AutoChain);
+  chainlead = MakeCheckedUnique(ChainLead);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {

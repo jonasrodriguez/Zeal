@@ -79,8 +79,6 @@ void AutoChain::handle_print_chat(const char *message, int color_index) {
 
   if (!autochain || !message) return;
 
-  Zeal::Game::print_debug("AutoChain: Received chat message: %s", message);
-
   // Expected format: "GO PlayerName - CH a TargetName Y"
   static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+)( Y)?)");
   std::cmatch match;
