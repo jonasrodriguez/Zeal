@@ -60,24 +60,14 @@ void AutoChain::search_spells() {
   }
 }
 
-bool AutoChain::is_gem_ready(int gem_index) {
-  bool invalid_index = gem_index < 0 || gem_index >= GAME_NUM_SPELL_GEMS;
-  auto self = Zeal::Game::get_self();
-  auto actor_info = self ? self->ActorInfo : nullptr;
-  auto char_info = Zeal::Game::get_char_info();
-  auto display = Zeal::Game::get_display();
-  if (invalid_index || !self || !actor_info || !char_info || !display) return true;  // Default to true.
-
-  int game_time = display->GameTimeMs;
-  int spell_id = char_info->MemorizedSpell[gem_index];
-  if (spell_id != kInvalidSpellId && actor_info->RecastTimeout[gem_index] > game_time) return false;
-
-  return true;
-}
-
 void AutoChain::handle_print_chat(const char *message, int color_index) {
 
   if (!autochain || !message) return;
+
+  // If we already casting one, and the next is on queue, just skip parsing
+  if (state != Idle && next_ch_queue) {
+    return;
+  }
 
   // Expected format: "GO PlayerName - CH a TargetName Y"
   static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+)( Y)?)");
@@ -93,8 +83,15 @@ void AutoChain::handle_print_chat(const char *message, int color_index) {
 
   if (!Zeal::String::compare_insensitive(player_name, self->Name)) return;
 
-  state = AboutToCast;
   ch_target = target_name;
+
+  // If state is not idle, a ch is already being casted. Queue the next one but dont change the state
+  if (state != Idle) {
+    next_ch_queue = true;
+    return;
+  }
+
+  state = AboutToCast;
 }
 
 void AutoChain::tick_about_to_cast() {
@@ -147,12 +144,20 @@ void AutoChain::tick_about_to_land() {
     // If target HP is over 75%, cancel CH by ducking
     auto target = Zeal::Game::get_target();
     if (target && target->HpCurrent > (target->HpMax * 0.75)) {
-      Zeal::Game::do_ooc(ch_target + " por encima del 75%. Cancelo CH");
+      Zeal::Game::print_chat("Target por encima del 75% de HP, cancelando CH.");
       self->ChangeStance(Stance::Sit);
       state = Idle;  
     }
   } else {
     end_ch_cast_timestamp = current_timestamp;
+
+    // Check if next CH was called
+    if (next_ch_queue) {
+      next_ch_queue = false;
+      state = NextCH;
+      return;
+    }
+
     // Landed CH, check if we need to cast yaulp
     if (yaulp) {
       bool has_yaulp = false;
@@ -175,6 +180,12 @@ void AutoChain::tick_about_to_land() {
 void AutoChain::tick_cast_yaulp() {
 
   if ((current_timestamp - end_ch_cast_timestamp) <= 500) {
+    return;
+  }
+
+  if (next_ch_queue) {
+    next_ch_queue = false;
+    state = NextCH;
     return;
   }
 
@@ -205,6 +216,18 @@ void AutoChain::tick_retry_casting() {
   }
 }
 
+void AutoChain::tick_next_ch() {
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  auto fizzle = self->ActorInfo->FizzleTimeout;
+  auto gameTime = Zeal::Game::get_display()->GameTimeMs;
+
+  // Check if yaulp gem is ready before trying to cast
+  if (fizzle > gameTime) {
+    return;
+  }
+  state = AboutToCast;
+}
+
 void AutoChain::tick() {
   if (!autochain) return;
 
@@ -229,6 +252,9 @@ void AutoChain::tick() {
       break;
     case RetryCasting:
       tick_retry_casting();
+      break;
+    case NextCH:
+      tick_next_ch();
       break;
     case Idle:
     default:

@@ -17,7 +17,7 @@ class AutoChain {
   static constexpr int COMPLETE_HEALING_ID = 13;
   static constexpr int YAULP_V_ID = 2326;
 
-  enum CHState { Idle, AboutToCast, CheckCasting, Casting, AboutToLand, Yaulp, RetryCasting };
+  enum CHState { Idle, AboutToCast, CheckCasting, Casting, AboutToLand, Yaulp, RetryCasting, NextCH };
 
   void handle_print_chat(const char *message, int color_index);  // Scans chat text for CH orders.
   void tick();
@@ -28,6 +28,7 @@ class AutoChain {
   void tick_about_to_land();
   void tick_cast_yaulp();
   void tick_retry_casting();
+  void tick_next_ch();
 
   void search_spells();              // Searches for CH and Yaulp V in the spell gems and updates gem indices.
   bool is_gem_ready(int gem_index);  // Check if spell it's ready for castting
@@ -39,6 +40,7 @@ class AutoChain {
   int yaulp_gem = -1;
   CHState state = Idle;
 
+  bool next_ch_queue = false;				// Chain called for next CH while current CH was landing
   int retry_count = 0;                      // Tracks unsuccessful song casts.
   int max_retries = 3;						// Max retries before giving asking for skip.
   WORD casting_spell_id = kInvalidSpellId;  // Current spell being cast. Is only a valid id while casting.
