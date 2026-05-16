@@ -42,15 +42,14 @@ void ChainLead::tick() {
   last_call_time = now;
   auto &member = chain[chain_index];
   std::string call = std::format("GO {} - CH a {}{}", member.name, chain_target, yaulp ? " Y" : "");
-  Zeal::Game::do_ooc(call);
+  Zeal::Game::send_raid_chat(call);
   chain_index = (chain_index + 1) % chain.size();
 }
 
 
 // Initializes the character dependent filename useed
 void ChainLead::initialize_ini_filename() {
-  const char *name = Zeal::Game::get_char_info() ? Zeal::Game::get_char_info()->Name : "unknown";
-  std::string filename = std::string(name) + "_chain.ini";
+  std::string filename = "chain_lead.ini";
   std::filesystem::path file_path = Zeal::Game::get_game_path() / std::filesystem::path(filename);
   ini.set(file_path.string());
 }

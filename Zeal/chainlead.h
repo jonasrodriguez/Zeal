@@ -32,5 +32,5 @@ class ChainLead {
   // File system for loading chain members
   void initialize_ini_filename();
   std::vector<std::string> load();
-  IO_ini ini = IO_ini(".\\chain.ini");  // Filename updated later to per character.
+  IO_ini ini = IO_ini(".\\chain_lead.ini");  // Filename updated later to per character.
 };
