@@ -17,7 +17,7 @@ class AutoChain {
   static constexpr int COMPLETE_HEALING_ID = 13;
   static constexpr int YAULP_V_ID = 2326;
 
-  enum CHState { Idle, AboutToCast, CheckCasting, Casting, AboutToLand, Yaulp, RetryCasting, NextCH };
+  enum CHState { Idle, AboutToCast, CheckCasting, Casting, AboutToLand, FinishCasting, Yaulp, RetryCasting, NextCH };
 
   void handle_print_chat(const char *message, int color_index);  // Scans chat text for CH orders.
   void tick();
@@ -26,6 +26,7 @@ class AutoChain {
   void tick_check_casting();
   void tick_casting();
   void tick_about_to_land();
+  void tick_finish_casting();
   void tick_cast_yaulp();
   void tick_retry_casting();
   void tick_next_ch();

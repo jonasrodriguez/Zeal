@@ -97,10 +97,10 @@ void AutoChain::handle_print_chat(const char *message, int color_index) {
 void AutoChain::tick_about_to_cast() {
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
 
-  Zeal::Game::do_ooc("Casteando CH a " + ch_target + "(%n)");
+  Zeal::Game::send_raid_chat("Casteando CH a " + ch_target + " - %n .");
   Zeal::GameStructures::Entity *target = Zeal::Game::get_player_partial_name(ch_target.c_str());
   if (!target) {    
-    Zeal::Game::do_ooc("No puedo targetear a " + ch_target + ". SKIP ME!");
+    Zeal::Game::send_raid_chat("No puedo targetear a " + ch_target + ". SKIP ME!");
     state = Idle;
     return;
   }
@@ -129,11 +129,11 @@ void AutoChain::tick_check_casting() {
 void AutoChain::tick_casting() {
   if (Zeal::Game::GetSpellCastingTime() != -1) {
     casting_visible_timestamp = current_timestamp;
-    if ((current_timestamp - start_ch_cast_timestamp) > 9000) {  // About to land CH (9 seconds)
+    if ((current_timestamp - start_ch_cast_timestamp) > 9500) {  // About to land CH (9.5 seconds)
       state = AboutToLand;
     }
   } else {
-    Zeal::Game::do_ooc("CH Interrumpido. SKIP ME!");
+    Zeal::Game::send_raid_chat("CH Interrumpido. SKIP ME!");
     state = Idle;
   }
 }
@@ -142,46 +142,52 @@ void AutoChain::tick_about_to_land() {
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
   if (Zeal::Game::GetSpellCastingTime() != -1) {
     // If target HP is over 75%, cancel CH by ducking
-    auto target = Zeal::Game::get_target();
+    Zeal::GameStructures::Entity *target = Zeal::Game::get_player_partial_name(ch_target.c_str());
     if (target && target->HpCurrent > (target->HpMax * 0.75)) {
-      Zeal::Game::print_chat("Target por encima del 75% de HP, cancelando CH.");
+      Zeal::Game::send_raid_chat("Target por encima del 75% de HP, cancelo CH!");
       self->ChangeStance(Stance::Sit);
       state = Idle;  
     }
-  } else {
+  } else { // Finish casting
     end_ch_cast_timestamp = current_timestamp;
+    state = FinishCasting;
+  }
+}
 
-    // Check if next CH was called
-    if (next_ch_queue) {
-      next_ch_queue = false;
-      state = NextCH;
-      return;
-    }
+void AutoChain::tick_finish_casting() {
 
-    // Landed CH, check if we need to cast yaulp
-    if (yaulp) {
-      bool has_yaulp = false;
-      Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
-      // Check if self has yaulp buff, if not cast it
-      for (size_t i = 0; i < GAME_NUM_BUFFS; i++) {
-        Zeal::GameStructures::_GAMEBUFFINFO *buff = char_info->GetBuff(i);
-        if (buff && buff->BuffType != 0 && buff->SpellId == YAULP_V_ID) {
-          has_yaulp = true;
-        }
+  // Allow 500 for the CH cast to fully register
+  if ((current_timestamp - end_ch_cast_timestamp) <= 500) {
+    return;
+  }
+
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  // Check if next CH was called
+  if (next_ch_queue) {
+    next_ch_queue = false;
+    state = NextCH;
+    return;
+  }
+
+  // Check if we need to cast yaulp
+  if (yaulp) {
+    bool has_yaulp = false;
+    Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
+    // Check if self has yaulp buff, if not cast it
+    for (size_t i = 0; i < GAME_NUM_BUFFS; i++) {
+      Zeal::GameStructures::_GAMEBUFFINFO *buff = char_info->GetBuff(i);
+      if (buff && buff->BuffType != 0 && buff->SpellId == YAULP_V_ID) {
+        has_yaulp = true;
       }
-      state = has_yaulp ? Idle : Yaulp;
-    } else {
-      self->ChangeStance(Stance::Sit);
-      state = Idle;
-    }    
+    }
+    state = has_yaulp ? Idle : Yaulp;
+  } else {
+    self->ChangeStance(Stance::Sit);
+    state = Idle;
   }
 }
 
 void AutoChain::tick_cast_yaulp() {
-
-  if ((current_timestamp - end_ch_cast_timestamp) <= 500) {
-    return;
-  }
 
   if (next_ch_queue) {
     next_ch_queue = false;
@@ -207,10 +213,12 @@ void AutoChain::tick_cast_yaulp() {
 }
 
 void AutoChain::tick_retry_casting() {
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
   if (retry_count > max_retries) {
-    Zeal::Game::do_ooc("No puedo castear CH. SKIP ME!");
+    Zeal::Game::send_raid_chat("No puedo castear CH. SKIP ME!");
     retry_count = 0;
     state = Idle;
+    self->ChangeStance(Stance::Sit);
   } else {
     state = AboutToCast;
   }
@@ -246,6 +254,9 @@ void AutoChain::tick() {
       break;
     case AboutToLand:
       tick_about_to_land();
+      break;
+    case FinishCasting:
+      tick_finish_casting();
       break;
     case Yaulp:
       tick_cast_yaulp();
