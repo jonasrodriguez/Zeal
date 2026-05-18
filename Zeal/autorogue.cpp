@@ -135,7 +135,7 @@ void AutoRogue::handle_auto_rogue(const ULONGLONG &now) {
   // Use clickes
   if (now - last_use_item_time >= kUseItemRetryMs) {
     last_use_item_time = now;
-    ForwardCommand("/useitem Ring of Dain Frostreaver IV");
+    ForwardCommand("/use Ring of Dain Frostreaver IV");
   }
 }
 
