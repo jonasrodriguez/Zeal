@@ -1,0 +1,170 @@
+#include "autorogue.h"
+
+#include "callbacks.h"
+#include "commands.h"
+#include "game_addresses.h"
+#include "game_functions.h"
+#include "game_structures.h"
+#include "string_util.h"
+#include "zeal.h"
+
+// Forward declaration from commands.cpp - executes a command bypassing the detour.
+void ForwardCommand(std::string cmd);
+
+void AutoRogue::Enable() {
+  if (find_hotbuttons()) {
+    state = State::On;
+    Zeal::Game::print_chat("Enabled AutoRogue.");
+  }
+}
+
+void AutoRogue::Disable() {
+  state = State::Off; 
+  backstab_slot = -1;
+  backstab_btn = nullptr;
+  hide_slot = -1;
+  hide_btn = nullptr;
+}
+
+bool AutoRogue::find_hotbuttons() {
+  backstab_btn = nullptr;
+  hide_btn = nullptr;
+
+  std::string backstab_label = "Backstab";
+  std::string hide_label = "Hide";
+
+  auto *hb_wnd = Zeal::Game::Windows->HotButton;
+  if (!hb_wnd) return false;
+
+  for (int slot = 0; slot < 10; ++slot) {
+    Zeal::GameUI::BasicWnd *btn = hb_wnd->GetChildItem("HB_Button" + std::to_string(slot + 1), false);
+    if (!btn) continue;
+
+    const char *text = btn->Text.CastToCharPtr();
+    if (!text) continue;
+
+    if (text && Zeal::String::compare_insensitive(std::string(text), backstab_label)) {
+      backstab_btn = btn;
+      backstab_slot = slot;
+    }
+    if (text && Zeal::String::compare_insensitive(std::string(text), hide_label)) {
+      hide_btn = btn;
+      hide_slot = slot;
+    }
+  }
+  if (!backstab_btn) {
+    Zeal::Game::print_chat("AutoRogue: hotbutton 'Backstab' not found.");
+    return false;
+  }
+  if (!hide_btn) {
+    Zeal::Game::print_chat("AutoRogue: hotbutton 'Hide' not found.");
+    return false;
+  }
+  return true;
+}
+
+
+void AutoRogue::tick() {
+  if (state == State::Off) return;
+
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
+
+  if (!Zeal::Game::is_in_game() || !self || !char_info) {
+    Disable();
+    return;
+  }
+
+  ULONGLONG now = GetTickCount64();
+
+  switch (state) {
+    case State::On:
+      handle_auto_rogue(now);
+      break;
+    case State::StartHide:
+      Zeal::Game::do_autoattack(false);
+      last_hide_attempt_time = now;
+      state = State::Hide;
+      break;
+    case State::Hide:
+      if (now - last_hide_attempt_time >= kHideAttemptMs) {
+        // Call the game's DoHotButton using our stored button pointer (cast to SidlWnd* as the game expects).
+        reinterpret_cast<void(__fastcall *)(Zeal::GameUI::SidlWnd *, int, int, int)>(0x4209bd)(
+            reinterpret_cast<Zeal::GameUI::SidlWnd *>(hide_btn), 0, hide_slot, 0);
+        state = State::FinishHide;
+        last_hide_attempt_time = now;
+      }
+      break;
+    case State::FinishHide:
+      if (now - last_hide_attempt_time >= kHideAttemptMs) {
+        Zeal::Game::do_autoattack(true);
+        state = State::On;
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+void AutoRogue::handle_auto_rogue(const ULONGLONG &now) {
+
+  if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) {
+    return;
+  }
+
+  // Backstab and Hide button checks
+  if (now - last_interval_time >= kCheckIntervalMs) {
+    last_interval_time = now;
+
+    if (backstab_btn && !backstab_btn->Checked) {
+    
+      // Call the game's DoHotButton using our stored button pointer (cast to SidlWnd* as the game expects).
+      reinterpret_cast<void(__fastcall *)(Zeal::GameUI::SidlWnd *, int, int, int)>(0x4209bd)(
+        reinterpret_cast<Zeal::GameUI::SidlWnd *>(backstab_btn), 0, backstab_slot, 0);
+
+      return;
+    }
+
+    // Hide button -> We need to stop attacking first !
+    if (hide_btn && !hide_btn->Checked) {
+      state = State::StartHide;
+      return;
+    }
+  }
+
+  // Use clickes
+  if (now - last_use_item_time >= kUseItemRetryMs) {
+    last_use_item_time = now;
+    ForwardCommand("/useitem Ring of Dain Frostreaver IV");
+  }
+}
+
+AutoRogue::AutoRogue(ZealService *zeal) {
+  // Disable on zone transitions and character select.
+  zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::CharacterSelect);
+  zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::EndMainLoop);
+  zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::EnterZone);
+
+  // Poll on each main loop iteration (same pattern as autoability).
+  zeal->callbacks->AddGeneric([this]() { tick(); });
+
+  // Register the /autorogue command.
+  zeal->commands_hook->Add(
+      "/autorogue", {"/ar"},
+      "Tries to use buttons BackStab & Hide from hotbutton bar.",
+      [this](std::vector<std::string> &args) {
+        if (args.size() >= 1) {
+          if (args.size() == 2 && Zeal::String::compare_insensitive(args[1], "off")) {
+            Disable();
+            return true;
+          } 
+          Enable();
+          return true;
+        }
+
+        Zeal::Game::print_chat("Usage: /AutoRogue <off>");
+        return true;
+      });
+}
+
+AutoRogue::~AutoRogue() {}
