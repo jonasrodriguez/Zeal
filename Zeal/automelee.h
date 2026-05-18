@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include <memory>
 
-#include "autorogue.h"
 #include "Iautomelee.h"
 
 class AutoMelee {

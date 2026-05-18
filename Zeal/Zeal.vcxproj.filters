@@ -321,6 +321,12 @@
     <ClInclude Include="autorogue.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
+    <ClInclude Include="Iautomelee.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="automonk.h">
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -564,6 +570,9 @@
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
     <ClCompile Include="autorogue.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="automonk.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>

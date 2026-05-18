@@ -7,6 +7,8 @@
 #include "string_util.h"
 #include "zeal.h"
 
+#include "autorogue.h"
+#include "automonk.h"
 
 void AutoMelee::tick() {
   if (!handler) return;
@@ -29,7 +31,9 @@ void AutoMelee::Enable(std::unique_ptr<IAutoMelee> new_handler, bool clickies = 
   }
 }
 
-void AutoMelee::Disable() { handler.reset(); }
+void AutoMelee::Disable() { 
+  handler.reset(); 
+}
 
 AutoMelee::AutoMelee(ZealService *zeal) {
   // Disable on zone transitions and character select.
@@ -52,10 +56,12 @@ AutoMelee::AutoMelee(ZealService *zeal) {
           }
 
           if (Zeal::String::compare_insensitive(args[1], "off")) {
+            Zeal::Game::print_chat("AutoMelee disabled.");  
             Disable();
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "monk")) {            
+            Enable(std::make_unique<AutoMonk>(), clickies);
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "rogue")) {
