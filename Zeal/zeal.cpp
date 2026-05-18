@@ -15,7 +15,6 @@
 #include "autochain.h"
 #include "autofire.h"
 #include "automelee.h"
-#include "autorogue.h"
 #include "bandolier.h"
 #include "binds.h"
 #include "buff_timers.h"
@@ -181,7 +180,6 @@ ZealService::ZealService() {
   autocleric = MakeCheckedUnique(AutoCleric);
   autochain = MakeCheckedUnique(AutoChain);
   chainlead = MakeCheckedUnique(ChainLead);
-  autorogue = MakeCheckedUnique(AutoRogue);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {

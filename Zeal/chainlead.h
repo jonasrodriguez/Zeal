@@ -20,6 +20,7 @@ class ChainLead {
   };
 
   void tick();
+  void handle_print_chat(const char *message, int color_index);  // Scans chat text for CH orders.
 
   std::vector<ChainMember> chain;
   bool chain_lead = false;

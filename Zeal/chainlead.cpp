@@ -1,8 +1,12 @@
 #include "chainlead.h"
 
+#include <regex>
+#include <string>
+
 #include "game_functions.h"
 #include "zeal.h"
 #include "callbacks.h"
+#include "chat.h"
 #include "commands.h"
 #include "string_util.h"
 
@@ -22,6 +26,18 @@ void ChainLead::set_chain(std::string target, int pause, bool yaulp_arg) {
   }
   
   chain_lead = true;
+}
+
+void ChainLead::handle_print_chat(const char *message, int color_index) {
+  if (!chain_lead || !message) return;
+
+  // Expected format: "Playername says out of character, 'Casteando CH a Target - PlayerMana %'"
+  static const std::regex ch_pattern(R"(^(\w+) says out of character, 'Casteando CH a .+ - (\d+) %'$)");
+  std::cmatch match;
+  if (!std::regex_search(message, match, ch_pattern)) return;
+
+  std::string player_name = match[1].str();
+  //std::string player_mana = std::stoi(match[2].str());
 }
 
 void ChainLead::tick() {
@@ -74,6 +90,8 @@ ChainLead::ChainLead(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { chain_lead = false; }, callback_type::EndMainLoop);
   zeal->callbacks->AddGeneric([this]() { chain_lead = false; }, callback_type::EnterZone);
   zeal->callbacks->AddGeneric([this]() { tick(); });
+  // Hook all printed chat lines to watch for chain clerics' mana
+  zeal->chat_hook->add_print_chat_callback([this](const char *data, int color_index) { handle_print_chat(data, color_index); });
   zeal->commands_hook->Add("/chainlead", {"/cl"}, "Manages chain calls. Usage: /chainlead (target | off) pause(int) yaulp(yes|no)",
                            [this](std::vector<std::string> &args) { 
                              if (args.size() > 1) {
