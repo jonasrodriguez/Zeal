@@ -124,6 +124,7 @@
     <ClInclude Include="bandolier.h" />
     <ClInclude Include="bitmap_font.h" />
     <ClInclude Include="chainlead.h" />
+    <ClInclude Include="Iautomelee.h" />
     <ClInclude Include="operator_overloads.h" />
     <ClInclude Include="character_select.h" />
     <ClInclude Include="chatfilter.h" />

@@ -9,25 +9,27 @@
 
 
 void AutoMelee::tick() {
-  if (!auto_rogue) return;
-  auto_rogue->tick();
+  if (!handler) return;
+  handler->tick();
 }
 
-void AutoMelee::Enable(bool clickies = false) {
-  if (auto_rogue) {
-    Zeal::Game::print_chat("AutoMelee is already enabled in %s mode.", auto_rogue->name());
+void AutoMelee::Enable(std::unique_ptr<IAutoMelee> new_handler, bool clickies = false) {
+  if (!new_handler) return;
+
+  if (handler) {
+    Zeal::Game::print_chat("AutoMelee is already enabled in %s mode.", handler->name());
     return;
   }
 
-  auto_rogue = std::make_unique<AutoRogue>();
-  if (auto_rogue->start(clickies)) {
-    Zeal::Game::print_chat("AutoMelee enabled in %s mode", auto_rogue->name());
+  handler = std::move(new_handler);
+  if (handler->start(clickies)) {
+    Zeal::Game::print_chat("AutoMelee enabled in %s mode.", handler->name());
   } else {
-    auto_rogue.reset();
+    handler.reset();
   }
 }
 
-void AutoMelee::Disable() { auto_rogue.reset(); }
+void AutoMelee::Disable() { handler.reset(); }
 
 AutoMelee::AutoMelee(ZealService *zeal) {
   // Disable on zone transitions and character select.
@@ -44,6 +46,11 @@ AutoMelee::AutoMelee(ZealService *zeal) {
       "Auto-repeats /doability 1 and a class click item (monk: Celestial Fists, rogue: Coldain) while in combat.",
       [this](std::vector<std::string> &args) {
         if (args.size() >= 2) {
+          bool clickies = false;
+          if (args.size() == 3 && Zeal::String::compare_insensitive(args[2], "yes")) {
+            clickies = true;
+          }
+
           if (Zeal::String::compare_insensitive(args[1], "off")) {
             Disable();
             return true;
@@ -52,11 +59,7 @@ AutoMelee::AutoMelee(ZealService *zeal) {
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "rogue")) {
-            if (args.size() == 3 && Zeal::String::compare_insensitive(args[2], "yes")) {
-              Enable(true);
-              return true;
-            }
-            Enable();
+            Enable(std::make_unique<AutoRogue>(), clickies);
             return true;
           }
         }

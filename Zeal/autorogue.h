@@ -1,20 +1,20 @@
 #pragma once
 
 #include <Windows.h>
-
 #include <string>
 
+#include "Iautomelee.h"
 #include "game_ui.h"
 
-class AutoRogue {
+class AutoRogue : public IAutoMelee {
  public:
   AutoRogue() = default;
-  ~AutoRogue() = default;
+  ~AutoRogue() override = default;
 
-  bool start(bool click);
-  void tick();
+  bool start(bool click) override;
+  void tick() override;
 
-  const char *name() const { return "rogue"; }
+  const char *name() const override { return "rogue"; }
 
  private:
   enum class State { Off, On, StartHide, Hide, FinishHide, Evade };

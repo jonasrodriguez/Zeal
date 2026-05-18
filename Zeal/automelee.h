@@ -3,7 +3,8 @@
 #include <Windows.h>
 #include <memory>
 
- #include "autorogue.h"
+#include "autorogue.h"
+#include "Iautomelee.h"
 
 class AutoMelee {
  public:
@@ -11,10 +12,10 @@ class AutoMelee {
   AutoMelee(class ZealService *zeal);
   ~AutoMelee();
 
-  void Enable(bool clickies);
+  void Enable(std::unique_ptr<IAutoMelee> new_handler, bool clickies);
   void Disable();
 
  private:
   void tick();
-  std::unique_ptr<AutoRogue> auto_rogue;
+  std::unique_ptr<IAutoMelee> handler;
 };
