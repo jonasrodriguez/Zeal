@@ -13,14 +13,14 @@ void AutoMelee::tick() {
   auto_rogue->tick();
 }
 
-void AutoMelee::Enable() {
+void AutoMelee::Enable(bool clickies = false) {
   if (auto_rogue) {
     Zeal::Game::print_chat("AutoMelee is already enabled in %s mode.", auto_rogue->name());
     return;
   }
 
   auto_rogue = std::make_unique<AutoRogue>();
-  if (auto_rogue->start()) {
+  if (auto_rogue->start(clickies)) {
     Zeal::Game::print_chat("AutoMelee enabled in %s mode", auto_rogue->name());
   } else {
     auto_rogue.reset();
@@ -43,7 +43,7 @@ AutoMelee::AutoMelee(ZealService *zeal) {
       "/automelee", {"/am"},
       "Auto-repeats /doability 1 and a class click item (monk: Celestial Fists, rogue: Coldain) while in combat.",
       [this](std::vector<std::string> &args) {
-        if (args.size() == 2) {
+        if (args.size() >= 2) {
           if (Zeal::String::compare_insensitive(args[1], "off")) {
             Disable();
             return true;
@@ -52,12 +52,16 @@ AutoMelee::AutoMelee(ZealService *zeal) {
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "rogue")) {
+            if (args.size() == 3 && Zeal::String::compare_insensitive(args[2], "yes")) {
+              Enable(true);
+              return true;
+            }
             Enable();
             return true;
           }
         }
 
-        Zeal::Game::print_chat("Usage: /automelee <monk | rogue | off>");
+        Zeal::Game::print_chat("Usage: /automelee <monk | rogue | off> <clickies: true | false>");
         return true;
       });
 }

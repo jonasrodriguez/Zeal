@@ -11,7 +11,7 @@ class AutoRogue {
   AutoRogue() = default;
   ~AutoRogue() = default;
 
-  bool start();
+  bool start(bool click);
   void tick();
 
   const char *name() const { return "rogue"; }

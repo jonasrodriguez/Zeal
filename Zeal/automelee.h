@@ -11,11 +11,10 @@ class AutoMelee {
   AutoMelee(class ZealService *zeal);
   ~AutoMelee();
 
-  void Enable();
+  void Enable(bool clickies);
   void Disable();
 
  private:
   void tick();
-
   std::unique_ptr<AutoRogue> auto_rogue;
 };

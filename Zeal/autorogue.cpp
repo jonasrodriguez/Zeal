@@ -9,11 +9,9 @@
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
 
-bool AutoRogue::start() {
+bool AutoRogue::start(bool click) {
   state = State::On;
-  last_interval_time = 0;
-  last_use_item_time = 0;
-  last_hide_attempt_time = 0;
+  clickies = click;
   return find_hotbuttons();
 }
 
@@ -23,6 +21,7 @@ bool AutoRogue::find_hotbuttons() {
 
   const std::string backstab_label = "Backstab";
   const std::string hide_label = "Hide";
+  const std::string clickies_label = "Clickies";
 
   auto* hb_wnd = Zeal::Game::Windows->HotButton;
   if (!hb_wnd) {
@@ -44,6 +43,10 @@ bool AutoRogue::find_hotbuttons() {
     if (Zeal::String::compare_insensitive(std::string(text), hide_label)) {
       hide_btn = btn;
       hide_slot = slot;
+    }
+    if (Zeal::String::compare_insensitive(std::string(text), clickies_label)) {
+      clickies_btn = btn;
+      clickies_slot = slot;
     }
   }
 
@@ -109,7 +112,10 @@ void AutoRogue::handle_combat(ULONGLONG now) {
 
   if (clickies && now - last_use_item_time >= kUseItemRetryMs) {
     last_use_item_time = now;
-    if (!clickies_btn) {
+    if (clickies_btn) {
+      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
+          reinterpret_cast<Zeal::GameUI::SidlWnd*>(clickies_btn), 0, clickies_slot, 0);
+    } else {
       ForwardCommand("/use Ring of Dain Frostreaver IV");
     }
   }
