@@ -27,16 +27,18 @@ class AutoRogue : public IAutoMelee {
 
   int backstab_slot = -1;
   int hide_slot = -1;
+  int evade_slot = -1;
   int clickies_slot = -1;
   Zeal::GameUI::BasicWnd *backstab_btn = nullptr;
   Zeal::GameUI::BasicWnd *hide_btn = nullptr;
+  Zeal::GameUI::BasicWnd *evade_btn = nullptr;
   Zeal::GameUI::BasicWnd *clickies_btn = nullptr;
 
   ULONGLONG last_interval_time = 0;
-  ULONGLONG last_use_item_time = 0;
-  ULONGLONG last_hide_attempt_time = 0;
+  ULONGLONG last_use_item_time = 5000;
+  ULONGLONG last_hide_attempt_time = 1000;
 
-  static constexpr DWORD kCheckIntervalMs = 200;
+  static constexpr DWORD kCheckIntervalMs = 100;
   static constexpr DWORD kUseItemRetryMs = 10000;
-  static constexpr DWORD kHideAttemptMs = 100;
+  static constexpr DWORD kHideAttemptMs = 1000;
 };

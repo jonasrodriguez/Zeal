@@ -1,4 +1,5 @@
 #include "automonk.h"
+
 #include "game_addresses.h"
 #include "game_functions.h"
 #include "game_structures.h"
@@ -19,12 +20,11 @@ bool AutoMonk::find_hotbuttons() {
   clickies_btn = nullptr;
 
   const std::string kick_label = "Flying Kick";
-  const std::string epic_label = "Celestial Fists";
   const std::string clickies_label = "Clickies";
 
   auto* hb_wnd = Zeal::Game::Windows->HotButton;
   if (!hb_wnd) {
-    Zeal::Game::print_chat("AutoMelee: hotbutton bar not available.");
+    Zeal::Game::print_chat("AutoMelee: Error, barra de hotbuttons innacesible.");
     return false;
   }
 
@@ -46,11 +46,9 @@ bool AutoMonk::find_hotbuttons() {
   }
 
   if (!kick_btn) {
-    Zeal::Game::print_chat("AutoMelee: hotbutton 'Fyling Kick' not found.");
+    Zeal::Game::print_chat("AutoMelee: Error, hotbutton 'Flying Kick' no encontrado.");
     return false;
   }
-
-  epic_slot = Zeal::Game::find_use_item_by_name(epic_label, true);
 
   return true;
 }
@@ -72,10 +70,11 @@ void AutoMonk::tick() {
   // Epic Fists
   if (now - last_epic_time_time >= kUseEpicMs) {
     last_epic_time_time = now;
+    int slot = Zeal::Game::find_use_item_by_name("Celestial Fists", true);
     // Use celestial fist hotbutton if available, otherwise try with useitem command.
-    if (epic_slot != -1) {
+    if (slot != -1) {
       Zeal::GameStructures::GAMEITEMINFO* out_item = nullptr;
-      Zeal::Game::use_item(epic_slot, false, &out_item);
+      Zeal::Game::use_item(slot, false, &out_item);
     } else {
       ForwardCommand("/use Celestial Fists");
     }

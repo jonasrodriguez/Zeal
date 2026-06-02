@@ -122,6 +122,7 @@
     <ClInclude Include="automelee.h" />
     <ClInclude Include="automonk.h" />
     <ClInclude Include="autorogue.h" />
+    <ClInclude Include="autowarrior.h" />
     <ClInclude Include="bandolier.h" />
     <ClInclude Include="bitmap_font.h" />
     <ClInclude Include="chainlead.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="automelee.cpp" />
     <ClCompile Include="automonk.cpp" />
     <ClCompile Include="autorogue.cpp" />
+    <ClCompile Include="autowarrior.cpp" />
     <ClCompile Include="bandolier.cpp" />
     <ClCompile Include="bitmap_font.cpp" />
     <ClCompile Include="chainlead.cpp" />

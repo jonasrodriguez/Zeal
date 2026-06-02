@@ -7,18 +7,20 @@
 #include "Iautomelee.h"
 #include "game_ui.h"
 
-class AutoMonk : public IAutoMelee {
+class AutoWarrior : public IAutoMelee {
  public:
-  AutoMonk() = default;
-  ~AutoMonk() override = default;
+  AutoWarrior() = default;
+  ~AutoWarrior() override = default;
 
   bool start(bool click) override;
   void tick() override;
 
-  const char *name() const override { return "monk"; }
+  const char *name() const override { return "warrior"; }
+  void handle_chat(const std::string &message);
 
  private:
-  enum class State { Off, On };
+  enum class State { Off, On, Enraged, DiscOn, DiscOff };
+  enum class Discipline { None, Defensive, Evasive, Off };
 
   bool find_hotbuttons();
   void handle_combat(ULONGLONG now);
@@ -31,11 +33,12 @@ class AutoMonk : public IAutoMelee {
   Zeal::GameUI::BasicWnd *kick_btn = nullptr;
   Zeal::GameUI::BasicWnd *clickies_btn = nullptr;
 
+  Discipline discipline = Discipline::None;
+  ULONGLONG discipline_start_time = 0;
+
   ULONGLONG last_interval_time = 0;
-  ULONGLONG last_epic_time_time = 0;
-  ULONGLONG last_use_item_time = 0;
+  ULONGLONG last_use_item_time = 3000;
 
   static constexpr DWORD kCheckIntervalMs = 100;
-  static constexpr DWORD kUseEpicMs = 8000;
   static constexpr DWORD kUseItemRetryMs = 10000;
 };

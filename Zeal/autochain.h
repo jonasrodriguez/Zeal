@@ -43,7 +43,7 @@ class AutoChain {
 
   bool next_ch_queue = false;				// Chain called for next CH while current CH was landing
   int retry_count = 0;                      // Tracks unsuccessful song casts.
-  int max_retries = 3;						// Max retries before giving asking for skip.
+  int max_retries = 2;						// Max retries before giving asking for skip.
   WORD casting_spell_id = kInvalidSpellId;  // Current spell being cast. Is only a valid id while casting.
   ULONGLONG current_timestamp = 0;			// Now
   ULONGLONG start_ch_cast_timestamp = 0;    // Timestamp of when the cast started

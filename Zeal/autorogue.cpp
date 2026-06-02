@@ -21,11 +21,12 @@ bool AutoRogue::find_hotbuttons() {
 
   const std::string backstab_label = "Backstab";
   const std::string hide_label = "Hide";
+  const std::string evade_label = "Evade";
   const std::string clickies_label = "Clickies";
 
   auto* hb_wnd = Zeal::Game::Windows->HotButton;
   if (!hb_wnd) {
-    Zeal::Game::print_chat("AutoRogue: hotbutton bar not available.");
+    Zeal::Game::print_chat("AutoMelee: Error, barra de hotbuttons innacesible.");
     return false;
   }
 
@@ -44,6 +45,10 @@ bool AutoRogue::find_hotbuttons() {
       hide_btn = btn;
       hide_slot = slot;
     }
+    if (Zeal::String::compare_insensitive(std::string(text), evade_label)) {
+      evade_btn = btn;
+      evade_slot = slot;
+    }
     if (Zeal::String::compare_insensitive(std::string(text), clickies_label)) {
       clickies_btn = btn;
       clickies_slot = slot;
@@ -51,18 +56,21 @@ bool AutoRogue::find_hotbuttons() {
   }
 
   if (!backstab_btn) {
-    Zeal::Game::print_chat("AutoRogue: hotbutton 'Backstab' not found.");
+    Zeal::Game::print_chat("AutoRogue: Error, hotbutton 'Backstab' no encontrado.");
     return false;
   }
-  if (!hide_btn) {
-    Zeal::Game::print_chat("AutoRogue: hotbutton 'Hide' not found.");
-    return false;
-  }
+
   return true;
 }
 
 void AutoRogue::tick() {
   if (!Zeal::Game::is_in_game()) return;
+  
+  // Skip process while stunned
+  Zeal::GameStructures::GAMECHARINFO* char_info = Zeal::Game::get_char_info();
+  if (!char_info || char_info->StunnedState) {
+    return;
+  }
 
   ULONGLONG now = GetTickCount64();
 
@@ -105,6 +113,14 @@ void AutoRogue::handle_combat(ULONGLONG now) {
     }
 
     if (hide_btn && !hide_btn->Checked) {
+
+      // Do evade if avialable, its just faster
+      if (evade_btn) {
+        reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
+              reinterpret_cast<Zeal::GameUI::SidlWnd*>(evade_btn), 0, evade_slot, 0);
+        return;
+      }
+
       state = State::StartHide;
       return;
     }

@@ -16,5 +16,6 @@ class AutoMelee {
 
  private:
   void tick();
+  void handle_print_chat(const char *message, int color_index);
   std::unique_ptr<IAutoMelee> handler;
 };
