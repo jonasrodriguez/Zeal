@@ -13,9 +13,11 @@ class EntityManager {
   ~EntityManager();
   void Add(struct Zeal::GameStructures::Entity *);
   void Remove(struct Zeal::GameStructures::Entity *);
+  std::unordered_map<std::string, struct Zeal::GameStructures::Entity *> GetAll() const { return entity_map; }
   Zeal::GameStructures::Entity *Get(std::string name) const;  // Returns nullptr if not found.
   Zeal::GameStructures::Entity *Get(WORD id) const;           // Note: Equivalent to Game::get_entity_by_id()
   std::vector<std::string> GetPlayerPartialMatches(const std::string &start_of_name) const;
+  std::vector<Zeal::GameStructures::Entity *> GetNPCPartialMatches(const std::string &start_of_name) const;
   void Dump() const;
 
  private:

@@ -66,6 +66,8 @@
 #include "utils.h"
 #include "zone_map.h"
 
+#include "chetotarget.h"
+
 extern HMODULE this_module;
 
 #define MakeCheckedUnique(T, ...) MakeCheckedUniqueImpl<T>(__FILE__, __LINE__, this, __VA_ARGS__)
@@ -180,6 +182,7 @@ ZealService::ZealService() {
   autocleric = MakeCheckedUnique(AutoCleric);
   autochain = MakeCheckedUnique(AutoChain);
   chainlead = MakeCheckedUnique(ChainLead);
+  cheto_target = MakeCheckedUnique(ChetoTarget);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {

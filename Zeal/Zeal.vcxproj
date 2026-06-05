@@ -126,6 +126,7 @@
     <ClInclude Include="bandolier.h" />
     <ClInclude Include="bitmap_font.h" />
     <ClInclude Include="chainlead.h" />
+    <ClInclude Include="chetotarget.h" />
     <ClInclude Include="Iautomelee.h" />
     <ClInclude Include="operator_overloads.h" />
     <ClInclude Include="character_select.h" />
@@ -223,6 +224,7 @@
     <ClCompile Include="chainlead.cpp" />
     <ClCompile Include="character_select.cpp" />
     <ClCompile Include="chatfilter.cpp" />
+    <ClCompile Include="chetotarget.cpp" />
     <ClCompile Include="crash_handler.cpp" />
     <ClCompile Include="default_spritefont.cpp" />
     <ClCompile Include="directx.cpp" />

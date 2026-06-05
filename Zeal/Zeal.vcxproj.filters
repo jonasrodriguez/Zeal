@@ -330,6 +330,9 @@
     <ClInclude Include="autowarrior.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
+    <ClInclude Include="chetotarget.h">
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -579,6 +582,9 @@
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
     <ClCompile Include="autowarrior.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="chetotarget.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>

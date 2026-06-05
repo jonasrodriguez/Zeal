@@ -144,6 +144,8 @@ class ZoneMap {
   // Public interface for adding markers programmatically.
   void add_marker(int y, int x, const char *label = nullptr, bool clear_others = true);
 
+  void clear() { clear_markers(true); };
+
   Zeal::GameUI::SidlWnd *get_internal_window() { return wnd; }  // For short-term use only.
 
   // Private methods exposed for callback use only.
