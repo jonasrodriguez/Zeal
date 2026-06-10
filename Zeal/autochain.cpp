@@ -12,34 +12,106 @@
 #include "tick.h"
 #include "zeal.h"
 
-void AutoChain::enable(bool do_print) {
+void AutoChain::enable() {
   search_spells();
 
   if (ch_gem == -1) {
-    Zeal::Game::print_chat(USERCOLOR_ECHO_SHOUT, "AutoChain cannot be enabled: Complete Healing not found in spell gems.");
+    Zeal::Game::print_chat("AutoChain: ERROR ! Complete Healing no esta memorizado.");
     return;
   }
   if (yaulp_gem == -1) {
-    Zeal::Game::print_chat(USERCOLOR_ECHO_SHOUT, "AutoChain warning: Yaulp V not found in spell gems. Will cast CH without yaulping.");
+    Zeal::Game::print_chat("AutoChain: Yaulp V no esta memorizado, no se podra usar durante la chain.");
   }
 
-  if (do_print) {
-    Zeal::Game::print_chat("AutoChain enabled.");
+  Zeal::Game::print_chat("AutoChain enabled.");
+
+  // Join "viejeals" channel if it's not present
+  if (Zeal::Game::get_channel_number(CH_CHANNEL.c_str()) < 0) {
+    Zeal::Game::do_join(Zeal::Game::get_self(), CH_CHANNEL.c_str());
   }
 
   ch_target.clear();
   autochain = true;
 }
 
-void AutoChain::disable(bool do_print) {
+void AutoChain::disable() {
 
   ch_target.clear();
   yaulp_gem = -1;
   ch_gem = -1;
   autochain = false;
+}
 
-  if (do_print) {
-    Zeal::Game::print_chat("AutoChain disabled.");
+void AutoChain::handle_print_chat(const char *message, int color_index) {
+  if (!autochain || !message) return;
+
+  // Expected format: "GO PlayerName - CH a TargetName Y"
+  static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+)( Y)?)");
+  std::cmatch match;
+  if (!std::regex_search(message, match, go_pattern)) return;
+
+  std::string player_name = match[1].str();
+  std::string target_name = match[2].str();
+  yaulp = match[3].matched;
+
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  if (!self) return;
+
+  if (!Zeal::String::compare_insensitive(player_name, self->Name)) return;
+
+  if (state != Idle) {
+    send_chat("Casteando el CH anterior. SKIP ME!");
+    return;
+  }
+
+  ch_target = target_name;
+
+  state = AboutToCast;
+}
+
+void AutoChain::send_chat(const std::string &message) {
+  int channel_num = Zeal::Game::get_channel_number(CH_CHANNEL.c_str());
+  if (channel_num < 0) {
+    Zeal::Game::print_chat("AutoChain: ERROR ! No se tiene acceso al canal de " + CH_CHANNEL);
+    autochain = false;
+    return;
+  }
+  Zeal::Game::send_to_channel(channel_num, message.c_str());
+}
+
+void AutoChain::tick() {
+  if (!autochain) return;
+
+  if (state == Idle) return;
+
+  current_timestamp = GetTickCount64();
+  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
+
+  switch (state) {
+    case AboutToCast:
+      tick_about_to_cast();
+      break;
+    case CheckCasting:
+      tick_check_casting();
+      break;
+    case Casting:
+      tick_casting();
+      break;
+    case AboutToLand:
+      tick_about_to_land();
+      break;
+    case FinishCasting:
+      tick_finish_casting();
+      break;
+    case Yaulp:
+      tick_cast_yaulp();
+      break;
+    case RetryCasting:
+      tick_retry_casting();
+      break;
+    case Idle:
+    default:
+      return;
   }
 }
 
@@ -60,47 +132,23 @@ void AutoChain::search_spells() {
   }
 }
 
-void AutoChain::handle_print_chat(const char *message, int color_index) {
-
-  if (!autochain || !message) return;
-
-  // If we already casting one, and the next is on queue, just skip parsing
-  if (state != Idle && next_ch_queue) {
-    return;
-  }
-
-  // Expected format: "GO PlayerName - CH a TargetName Y"
-  static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+)( Y)?)");
-  std::cmatch match;
-  if (!std::regex_search(message, match, go_pattern)) return;
-
-  std::string player_name = match[1].str();
-  std::string target_name = match[2].str();
-  yaulp = match[3].matched;
-
-  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-  if (!self) return;
-
-  if (!Zeal::String::compare_insensitive(player_name, self->Name)) return;
-
-  ch_target = target_name;
-
-  // If state is not idle, a ch is already being casted. Queue the next one but dont change the state
-  if (state != Idle) {
-    next_ch_queue = true;
-    return;
-  }
-
-  state = AboutToCast;
-}
-
 void AutoChain::tick_about_to_cast() {
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
 
-  Zeal::Game::send_raid_chat("Casteando CH a " + ch_target + " - %n .");
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+
+  auto fizzle = self->ActorInfo->FizzleTimeout;
+
+  auto gameTime = Zeal::Game::get_display()->GameTimeMs;
+  // Check if CH gem is ready before trying to cast
+  if (fizzle > gameTime) {
+    return;
+  }
+
+  send_chat(std::format("Casteando CH a  a {} - %n .", ch_target));
   Zeal::GameStructures::Entity *target = Zeal::Game::get_player_partial_name(ch_target.c_str());
-  if (!target) {    
-    Zeal::Game::send_raid_chat("No puedo targetear a " + ch_target + ". SKIP ME!");
+  if (!target) {
+    send_chat(std::format("No puedo encontrar a {}. SKIP ME!", ch_target));
     state = Idle;
     return;
   }
@@ -133,7 +181,7 @@ void AutoChain::tick_casting() {
       state = AboutToLand;
     }
   } else {
-    Zeal::Game::send_raid_chat("CH Interrumpido. SKIP ME!");
+    send_chat("CH Interrumpido. SKIP ME!");
     state = Idle;
   }
 }
@@ -144,7 +192,6 @@ void AutoChain::tick_about_to_land() {
     // If target HP is over 75%, cancel CH by ducking
     Zeal::GameStructures::Entity *target = Zeal::Game::get_player_partial_name(ch_target.c_str());
     if (target && target->HpCurrent > (target->HpMax * 0.75)) {
-      Zeal::Game::send_raid_chat("Target por encima del 75% de HP, cancelo CH!");
       self->ChangeStance(Stance::Sit);
       state = Idle;  
     }
@@ -156,16 +203,11 @@ void AutoChain::tick_about_to_land() {
 
 void AutoChain::tick_finish_casting() {
 
-  // Allow 500 for the CH cast to fully register
-  if ((current_timestamp - end_ch_cast_timestamp) <= 500) {
-    return;
-  }
-
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-  // Check if next CH was called
-  if (next_ch_queue) {
-    next_ch_queue = false;
-    state = NextCH;
+  bool casting_active = self->ActorInfo->CastingSpellId != kInvalidSpellId;
+  bool server_ack_cast = (self->ActorInfo->CastingSpellGemNumber == 0xff);
+
+  if (casting_active && !server_ack_cast) {
     return;
   }
 
@@ -189,12 +231,6 @@ void AutoChain::tick_finish_casting() {
 
 void AutoChain::tick_cast_yaulp() {
 
-  if (next_ch_queue) {
-    next_ch_queue = false;
-    state = NextCH;
-    return;
-  }
-
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
 
   auto fizzle = self->ActorInfo->FizzleTimeout;
@@ -215,7 +251,7 @@ void AutoChain::tick_cast_yaulp() {
 void AutoChain::tick_retry_casting() {
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
   if (retry_count > max_retries) {
-    Zeal::Game::send_raid_chat("No puedo castear CH. SKIP ME!");
+    send_chat("No puedo castear CH. SKIP ME!");
     retry_count = 0;
     state = Idle;
     self->ChangeStance(Stance::Sit);
@@ -224,54 +260,6 @@ void AutoChain::tick_retry_casting() {
   }
 }
 
-void AutoChain::tick_next_ch() {
-  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-  auto fizzle = self->ActorInfo->FizzleTimeout;
-  auto gameTime = Zeal::Game::get_display()->GameTimeMs;
-
-  // Check if yaulp gem is ready before trying to cast
-  if (fizzle > gameTime) {
-    return;
-  }
-  state = AboutToCast;
-}
-
-void AutoChain::tick() {
-  if (!autochain) return;
-
-  current_timestamp = GetTickCount64();
-  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
-
-  switch (state) { 
-    case AboutToCast:
-      tick_about_to_cast();
-      break;
-    case CheckCasting:
-      tick_check_casting();
-      break;
-    case Casting:
-      tick_casting();
-      break;
-    case AboutToLand:
-      tick_about_to_land();
-      break;
-    case FinishCasting:
-      tick_finish_casting();
-      break;
-    case Yaulp:
-      tick_cast_yaulp();
-      break;
-    case RetryCasting:
-      tick_retry_casting();
-      break;
-    case NextCH:
-      tick_next_ch();
-      break;
-    case Idle:
-    default:
-      return;
-  }
-}
 
 AutoChain::AutoChain(ZealService *zeal) {
 
@@ -280,22 +268,23 @@ AutoChain::AutoChain(ZealService *zeal) {
       [this](const char *data, int color_index) { handle_print_chat(data, color_index); });
 
   // Disable on zone transitions and character select.
-  zeal->callbacks->AddGeneric([this]() { disable(false); }, callback_type::CharacterSelect);
-  zeal->callbacks->AddGeneric([this]() { disable(false); }, callback_type::EndMainLoop);
-  zeal->callbacks->AddGeneric([this]() { disable(false); }, callback_type::EnterZone);
+  zeal->callbacks->AddGeneric([this]() { disable(); }, callback_type::CharacterSelect);
+  zeal->callbacks->AddGeneric([this]() { disable(); }, callback_type::EndMainLoop);
+  zeal->callbacks->AddGeneric([this]() { disable(); }, callback_type::EnterZone);
 
   // Poll on each main loop iteration.
   zeal->callbacks->AddGeneric([this]() { tick(); });
 
   // Register the /autocleric command.
-  zeal->commands_hook->Add("/autochain", {"/ac"}, "Auto-casts CH on 'Go' orders. Usage: /autochain (toggle, on, off)",
-                           [this](std::vector<std::string> &args) {
-                             bool force_on = (args.size() == 2 && args[1] == "on");
-                             bool force_off = (args.size() == 2 && args[1] == "off");
-                             bool enable_ac = force_on ? true : force_off ? false : !autochain;
-                             (enable_ac) ? enable() : disable();
-                             return true;
-                           });
+  zeal->commands_hook->Add("/autochain", {"/chain"}, "Auto-casts CH on 'Go' orders. Usage: /autochain (toggle, on, off)",
+        [this](std::vector<std::string> &args) {                
+            if (args.size() == 2 && args[1] == "off") {
+                disable();
+                return true;
+            }
+            enable();
+            return true;
+        });
 }
 
 AutoChain::~AutoChain() {}

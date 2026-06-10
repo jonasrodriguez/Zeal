@@ -24,7 +24,26 @@ void ChainLead::set_chain(std::string target, int pause, bool yaulp_arg) {
     Zeal::Game::print_chat("No chain members found in ini file.");
     return;
   }
-  
+
+  // Calculate idle team for each member, CH duration is always 10 seconds
+  int chain_size = chain.size();
+  idle_time = pause_duration * chain_size - (100 * 100);
+
+  auto msg = std::format("ChainLead: Chain con {} miembros y {} segundos de pausa deja un margen de {} segundos", 
+      chain_size, pause * 0.1, idle_time * 0.001);
+  Zeal::Game::print_chat(msg);
+  if (idle_time < 1000) {
+    Zeal::Game::print_chat("ChainLead: La chain esta demasiado ajustada, considera aumentar la pausa.");
+  }
+
+
+  // Join "viejeals" channel if it's not present
+  if (Zeal::Game::get_channel_number(CH_CHANNEL.c_str()) < 0) {
+    Zeal::Game::do_join(Zeal::Game::get_self(), CH_CHANNEL.c_str());
+  } 
+
+  send_chat(std::format("Roll chain ! Target: {} Pausa: {} !", target, pause));
+
   chain_lead = true;
 }
 
@@ -38,6 +57,16 @@ void ChainLead::handle_print_chat(const char *message, int color_index) {
 
   std::string player_name = match[1].str();
   //std::string player_mana = std::stoi(match[2].str());
+}
+
+void ChainLead::send_chat(const std::string &message) {
+  int channel_num = Zeal::Game::get_channel_number(CH_CHANNEL.c_str());
+  if (channel_num < 0) {
+    Zeal::Game::print_chat("ChainLead: ERROR ! No se tiene acceso al canal de " + CH_CHANNEL);
+    chain_lead = false;
+    return;
+  }
+  Zeal::Game::send_to_channel(channel_num, message.c_str());
 }
 
 void ChainLead::tick() {
@@ -57,11 +86,10 @@ void ChainLead::tick() {
 
   last_call_time = now;
   auto &member = chain[chain_index];
-  std::string call = std::format("GO {} - CH a {}{}", member.name, chain_target, yaulp ? " Y" : "");
-  Zeal::Game::send_raid_chat(call);
+  std::string call = std::format("GO {} - CH a {} {}", member.name, chain_target, yaulp ? "yaulp" : "");
+  send_chat(call);
   chain_index = (chain_index + 1) % chain.size();
 }
-
 
 // Initializes the character dependent filename useed
 void ChainLead::initialize_ini_filename() {
@@ -89,51 +117,46 @@ ChainLead::ChainLead(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { chain_lead = false; }, callback_type::CharacterSelect);
   zeal->callbacks->AddGeneric([this]() { chain_lead = false; }, callback_type::EndMainLoop);
   zeal->callbacks->AddGeneric([this]() { chain_lead = false; }, callback_type::EnterZone);
+
   zeal->callbacks->AddGeneric([this]() { tick(); });
-  // Hook all printed chat lines to watch for chain clerics' mana
+
   zeal->chat_hook->add_print_chat_callback([this](const char *data, int color_index) { handle_print_chat(data, color_index); });
-  zeal->commands_hook->Add("/chainlead", {"/cl"}, "Manages chain calls. Usage: /chainlead (target | off) pause(int) yaulp(yes|no)",
-                           [this](std::vector<std::string> &args) { 
-                             if (args.size() > 1) {
+  zeal->commands_hook->Add("/chainlead", {"/cl"}, "Manages chain calls. Usage: /chainlead (target | off) pause(int) (yaulp | )",
+        [this](std::vector<std::string> &args) { 
+            if (args.size() > 1) {
 
-                               std::string target;
-                               if (Zeal::String::compare_insensitive(args[1], "off")) {
-                                 chain_lead = false;
-                                 return true;
-                               } else {
-                                 target = args[1];
-                               }
+            bool yaulp = false;
+            // Get args[3] as boolean for yaulp (if present)
+            if (args.size() == 4) {
+                if (Zeal::String::compare_insensitive(args[3], "yaulp")) {
+                yaulp = true;
+                }
+            }
 
-                               int pause = 0;
-                               bool yaulp = false;
+            std::string target;
+            if (Zeal::String::compare_insensitive(args[1], "off")) {
+                chain_lead = false;
+                return true;
+            } else {
+                target = args[1];
+            }
 
-                               try {
-                                 pause = std::stoi(args[2]);
-                               } catch (...) {
-                                 Zeal::Game::print_chat("Invalid pause duration. Must be an integer.");
-                                 return false;
-                               }
+            int pause = 0;
+            try {
+                pause = std::stoi(args[2]);
+            } catch (...) {
+                Zeal::Game::print_chat("Invalid pause duration. Must be an integer.");
+                return false;
+            }
 
-                               // Get args[3] as boolean for yaulp (if present)
-                               if (args.size() == 4) {
-                                 if (Zeal::String::compare_insensitive(args[3], "yes")) {
-                                   yaulp = true;
-                                 } else if (Zeal::String::compare_insensitive(args[3], "no")) {
-                                   yaulp = false;
-                                 } else {
-                                   Zeal::Game::print_chat("Invalid yaulp value. Use yes or no.");
-                                   return false;
-                                 }
-                               }
+            set_chain(target, pause, yaulp);
+            return true;
 
-                               set_chain(target, pause, yaulp);
-                               return true;
-
-                             } else {
-                               Zeal::Game::print_chat("Invalid usage of /chainlead command. Usage: /chainlead target (target | off) pause(int) yaulp(yes|no)");
-                               return false;
-                             }
-                           });
+            } else {
+            Zeal::Game::print_chat("Invalid usage of /chainlead command. Usage: /chainlead target (target | off) pause(int) yaulp(yes|no)");
+            return false;
+            }
+        });
 }
 
 ChainLead::~ChainLead() {};

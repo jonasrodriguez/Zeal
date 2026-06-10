@@ -156,9 +156,7 @@ AutoCleric::AutoCleric(ZealService *zeal) {
       [this](const char *data, int color_index) { handle_print_chat(data, color_index); });
 
   // Register the /autocleric command.
-  zeal->commands_hook->Add(
-      "/autocleric", {"/ac"},
-      "Auto-casts CH on 'Go' orders. Usage: /autocleric (toggle, on, off)",
+  zeal->commands_hook->Add("/autocleric", {}, "Auto-casts CH on 'Go' orders. Usage: /autocleric (toggle, on, off)",
       [this](std::vector<std::string> &args) {
         bool force_on = (args.size() == 2 && args[1] == "on");
         bool force_off = (args.size() == 2 && args[1] == "off");

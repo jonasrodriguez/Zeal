@@ -10,14 +10,15 @@ class AutoChain {
   AutoChain(class ZealService *zeal);
   ~AutoChain();
 
-  void enable(bool do_print = true);
-  void disable(bool do_print = true);
+  void enable();
+  void disable();
 
  private:
   static constexpr int COMPLETE_HEALING_ID = 13;
   static constexpr int YAULP_V_ID = 2326;
+  inline static const std::string CH_CHANNEL = "viejeals";
 
-  enum CHState { Idle, AboutToCast, CheckCasting, Casting, AboutToLand, FinishCasting, Yaulp, RetryCasting, NextCH };
+  enum CHState { Idle, WaitingChannel, AboutToCast, CheckCasting, Casting, AboutToLand, FinishCasting, Yaulp, RetryCasting };
 
   void handle_print_chat(const char *message, int color_index);  // Scans chat text for CH orders.
   void tick();
@@ -29,7 +30,8 @@ class AutoChain {
   void tick_finish_casting();
   void tick_cast_yaulp();
   void tick_retry_casting();
-  void tick_next_ch();
+
+  void send_chat(const std::string &message);
 
   void search_spells();              // Searches for CH and Yaulp V in the spell gems and updates gem indices.
   bool is_gem_ready(int gem_index);  // Check if spell it's ready for castting
@@ -41,7 +43,8 @@ class AutoChain {
   int yaulp_gem = -1;
   CHState state = Idle;
 
-  bool next_ch_queue = false;				// Chain called for next CH while current CH was landing
+  int channel_num = -1;						// Channel number for "viejeals" if it exists, otherwise -1.
+
   int retry_count = 0;                      // Tracks unsuccessful song casts.
   int max_retries = 2;						// Max retries before giving asking for skip.
   WORD casting_spell_id = kInvalidSpellId;  // Current spell being cast. Is only a valid id while casting.

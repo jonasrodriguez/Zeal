@@ -10,7 +10,6 @@
 #include "zone_map.h"
 
 void ChetoTarget::Disable() {
-  Zeal::Game::print_chat("ChetoTarget disabled.");
   targets.clear();
   ZealService::get_instance()->zone_map->clear();
 }
