@@ -67,6 +67,7 @@
 #include "zone_map.h"
 
 #include "chetotarget.h"
+#include "automage.h"
 
 extern HMODULE this_module;
 
@@ -183,6 +184,7 @@ ZealService::ZealService() {
   autochain = MakeCheckedUnique(AutoChain);
   chainlead = MakeCheckedUnique(ChainLead);
   cheto_target = MakeCheckedUnique(ChetoTarget);
+  auto_mage = MakeCheckedUnique(AutoMage);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {

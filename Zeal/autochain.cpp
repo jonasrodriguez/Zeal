@@ -219,16 +219,8 @@ void AutoChain::tick_finish_casting() {
 
   // Check if we need to cast yaulp
   if (yaulp) {
-    bool has_yaulp = false;
     Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
-    // Check if self has yaulp buff, if not cast it
-    for (size_t i = 0; i < GAME_NUM_BUFFS; i++) {
-      Zeal::GameStructures::_GAMEBUFFINFO *buff = char_info->GetBuff(i);
-      if (buff && buff->BuffType != 0 && buff->SpellId == YAULP_V_ID) {
-        has_yaulp = true;
-      }
-    }
-    state = has_yaulp ? Idle : Yaulp;
+    state = char_info->is_spell_affecting_pc(YAULP_V_ID) ? Idle : Yaulp;
   } else {
     self->ChangeStance(Stance::Sit);
     state = Idle;

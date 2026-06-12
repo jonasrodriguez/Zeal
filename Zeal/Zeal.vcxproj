@@ -119,6 +119,7 @@
     <ClInclude Include="autochain.h" />
     <ClInclude Include="autocleric.h" />
     <ClInclude Include="autofire.h" />
+    <ClInclude Include="automage.h" />
     <ClInclude Include="automelee.h" />
     <ClInclude Include="automonk.h" />
     <ClInclude Include="autorogue.h" />
@@ -143,6 +144,7 @@
     <ClInclude Include="music.h" />
     <ClInclude Include="raid_bars.h" />
     <ClInclude Include="raid_bars_manage.h" />
+    <ClInclude Include="spell.h" />
     <ClInclude Include="survey.h" />
     <ClInclude Include="tag_arrows.h" />
     <ClInclude Include="tick.h" />
@@ -215,6 +217,7 @@
     <ClCompile Include="autochain.cpp" />
     <ClCompile Include="autocleric.cpp" />
     <ClCompile Include="autofire.cpp" />
+    <ClCompile Include="automage.cpp" />
     <ClCompile Include="automelee.cpp" />
     <ClCompile Include="automonk.cpp" />
     <ClCompile Include="autorogue.cpp" />

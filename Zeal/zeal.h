@@ -97,6 +97,7 @@ class ZealService {
   std::unique_ptr<class AutoChain> autochain = nullptr;
   std::unique_ptr<class ChainLead> chainlead = nullptr;
   std::unique_ptr<class ChetoTarget> cheto_target = nullptr;
+  std::unique_ptr<class AutoMage> auto_mage = nullptr;
 
  private:
   void AddCommands();  // Registers module dependent chat commands.
