@@ -12,6 +12,8 @@
 #include "tick.h"
 #include "zeal.h"
 
+void ForwardCommand(std::string cmd);
+
 void AutoChain::enable() {
   search_spells();
 
@@ -24,11 +26,6 @@ void AutoChain::enable() {
   }
 
   Zeal::Game::print_chat("AutoChain enabled.");
-
-  // Join "viejeals" channel if it's not present
-  if (Zeal::Game::get_channel_number(CH_CHANNEL.c_str()) < 0) {
-    Zeal::Game::do_join(Zeal::Game::get_self(), CH_CHANNEL.c_str());
-  }
 
   ch_target.clear();
   autochain = true;
@@ -45,8 +42,8 @@ void AutoChain::disable() {
 void AutoChain::handle_print_chat(const char *message, int color_index) {
   if (!autochain || !message) return;
 
-  // Expected format: "GO PlayerName - CH a TargetName Y"
-  static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+)( Y)?)");
+  // Expected format: "GO PlayerName - CH a TargetName yaulp."
+  static const std::regex go_pattern(R"(.*GO (\S+) - CH a ([^'\s]+)( yaulp)?)");
   std::cmatch match;
   if (!std::regex_search(message, match, go_pattern)) return;
 
@@ -70,13 +67,7 @@ void AutoChain::handle_print_chat(const char *message, int color_index) {
 }
 
 void AutoChain::send_chat(const std::string &message) {
-  int channel_num = Zeal::Game::get_channel_number(CH_CHANNEL.c_str());
-  if (channel_num < 0) {
-    Zeal::Game::print_chat("AutoChain: ERROR ! No se tiene acceso al canal de " + CH_CHANNEL);
-    autochain = false;
-    return;
-  }
-  Zeal::Game::send_to_channel(channel_num, message.c_str());
+  Zeal::Game::send_raid_chat(message.c_str());
 }
 
 void AutoChain::tick() {
@@ -134,18 +125,32 @@ void AutoChain::search_spells() {
 
 void AutoChain::tick_about_to_cast() {
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
-
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
 
-  auto fizzle = self->ActorInfo->FizzleTimeout;
+  // Check if have enough mana
+  if (char_info->mana() < CH_MANA) {
+    send_chat("No tengo mana para CH. SKIP ME!");
+    state = Idle;
+    return;
+  } else if (char_info->mana() < CH_MANA * 1.5) {
+    send_chat("Atencion ! Ultimo CH !!");
+  }
 
+  auto fizzle = self->ActorInfo->FizzleTimeout;
   auto gameTime = Zeal::Game::get_display()->GameTimeMs;
   // Check if CH gem is ready before trying to cast
   if (fizzle > gameTime) {
     return;
   }
 
-  send_chat(std::format("Casteando CH a  a {} - %n .", ch_target));
+  // Try to use links into the message
+  const char kMarker = 0x12;
+  const int kChId = 13;
+  const int kWhoop = 11175;
+  auto ch_msg = std::format("Casteando {0:c}0{1:06d}CH{2:c} a {3:c}0{4:06d}{5}{6:c} - %n mana.",
+      kMarker, kChId, kMarker,kMarker, kWhoop, ch_target, kMarker);
+
+  send_chat(ch_msg);
   Zeal::GameStructures::Entity *target = Zeal::Game::get_player_partial_name(ch_target.c_str());
   if (!target) {
     send_chat(std::format("No puedo encontrar a {}. SKIP ME!", ch_target));
@@ -210,6 +215,7 @@ void AutoChain::tick_finish_casting() {
   if (casting_active && !server_ack_cast) {
     return;
   }
+
 
   // Check if we need to cast yaulp
   if (yaulp) {

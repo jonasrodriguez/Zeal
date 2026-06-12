@@ -16,6 +16,7 @@ class AutoChain {
  private:
   static constexpr int COMPLETE_HEALING_ID = 13;
   static constexpr int YAULP_V_ID = 2326;
+  static constexpr int CH_MANA = 400;
   inline static const std::string CH_CHANNEL = "viejeals";
 
   enum CHState { Idle, WaitingChannel, AboutToCast, CheckCasting, Casting, AboutToLand, FinishCasting, Yaulp, RetryCasting };

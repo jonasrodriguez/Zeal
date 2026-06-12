@@ -2,6 +2,7 @@
 
 #include <regex>
 #include <string>
+#include <format>
 
 #include "game_functions.h"
 #include "zeal.h"
@@ -36,13 +37,11 @@ void ChainLead::set_chain(std::string target, int pause, bool yaulp_arg) {
     Zeal::Game::print_chat("ChainLead: La chain esta demasiado ajustada, considera aumentar la pausa.");
   }
 
-
-  // Join "viejeals" channel if it's not present
-  if (Zeal::Game::get_channel_number(CH_CHANNEL.c_str()) < 0) {
-    Zeal::Game::do_join(Zeal::Game::get_self(), CH_CHANNEL.c_str());
-  } 
-
-  send_chat(std::format("Roll chain ! Target: {} Pausa: {} !", target, pause));
+  const char kMarker = 0x12;
+  const int kWhoop = 11175;
+  auto roll_msg = std::format("Roll chain !! Target: {0:c}0{1:06d}{2}{3:c} Pausa: {4:c}0{5:06d}{6}{7:c}.", 
+      kMarker, kWhoop, target, kMarker, kMarker, kWhoop, pause, kMarker);
+  send_chat(roll_msg);
 
   chain_lead = true;
 }
@@ -60,13 +59,7 @@ void ChainLead::handle_print_chat(const char *message, int color_index) {
 }
 
 void ChainLead::send_chat(const std::string &message) {
-  int channel_num = Zeal::Game::get_channel_number(CH_CHANNEL.c_str());
-  if (channel_num < 0) {
-    Zeal::Game::print_chat("ChainLead: ERROR ! No se tiene acceso al canal de " + CH_CHANNEL);
-    chain_lead = false;
-    return;
-  }
-  Zeal::Game::send_to_channel(channel_num, message.c_str());
+  Zeal::Game::send_raid_chat(message.c_str());
 }
 
 void ChainLead::tick() {
@@ -86,7 +79,12 @@ void ChainLead::tick() {
 
   last_call_time = now;
   auto &member = chain[chain_index];
-  std::string call = std::format("GO {} - CH a {} {}", member.name, chain_target, yaulp ? "yaulp" : "");
+
+  const char kMarker = 0x12;
+  const int kWhoop = 11175;
+  std::string call = std::format("GO {} - CH a {} {}",  member.name, chain_target, yaulp ? "yaulp" : "");
+  call += std::format(" - GO {0:c}0{1:06d}{2}{3:c} !", kMarker, kWhoop, member.name, kMarker);
+
   send_chat(call);
   chain_index = (chain_index + 1) % chain.size();
 }
