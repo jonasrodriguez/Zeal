@@ -17,7 +17,7 @@ void AutoMelee::tick() {
   handler->tick();
 }
 
-void AutoMelee::Enable(std::unique_ptr<IAutoMelee> new_handler, bool clickies = false) {
+void AutoMelee::Enable(std::unique_ptr<IAutoMelee> new_handler, const std::vector<std::string> &arguments) {
   if (!new_handler) return;
 
   if (handler) {
@@ -26,7 +26,7 @@ void AutoMelee::Enable(std::unique_ptr<IAutoMelee> new_handler, bool clickies = 
   }
 
   handler = std::move(new_handler);
-  if (handler->start(clickies)) {
+  if (handler->start(arguments)) {
     Zeal::Game::print_chat("AutoMelee habilitado en modo %s.", handler->name());
   } else {
     handler.reset();
@@ -66,8 +66,9 @@ AutoMelee::AutoMelee(ZealService *zeal) {
       [this](std::vector<std::string> &args) {
         if (args.size() >= 2) {
           bool clickies = false;
-          if (args.size() == 3 && Zeal::String::compare_insensitive(args[2], "clickies")) {
-            clickies = true;
+          std::vector<std::string> arguments;
+          if (args.size() > 3) {
+            arguments.assign(args.begin() + 1, args.end());
           }
 
           if (Zeal::String::compare_insensitive(args[1], "off")) {
@@ -76,15 +77,15 @@ AutoMelee::AutoMelee(ZealService *zeal) {
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "monk")) {            
-            Enable(std::make_unique<AutoMonk>(), clickies);
+            Enable(std::make_unique<AutoMonk>(), arguments);
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "rogue")) {
-            Enable(std::make_unique<AutoRogue>(), clickies);
+            Enable(std::make_unique<AutoRogue>(), arguments);
             return true;
           }
           if (Zeal::String::compare_insensitive(args[1], "warrior")) {
-            Enable(std::make_unique<AutoWarrior>(), clickies);
+            Enable(std::make_unique<AutoWarrior>(), arguments);
             return true;
           }
         }

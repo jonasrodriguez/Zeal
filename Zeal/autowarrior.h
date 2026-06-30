@@ -12,7 +12,7 @@ class AutoWarrior : public IAutoMelee {
   AutoWarrior() = default;
   ~AutoWarrior() override = default;
 
-  bool start(bool click) override;
+  bool start(const std::vector<std::string> &arguments) override;
   void tick() override;
 
   const char *name() const override { return "warrior"; }
@@ -27,11 +27,14 @@ class AutoWarrior : public IAutoMelee {
   State state = State::Off;
 
   bool clickies = false;
+  bool taunt = false;
 
   int kick_slot = -1;
   int clickies_slot = -1;
+  int taunt_slot = -1;
   Zeal::GameUI::BasicWnd *kick_btn = nullptr;
   Zeal::GameUI::BasicWnd *clickies_btn = nullptr;
+  Zeal::GameUI::BasicWnd *taunt_btn = nullptr;
 
   Discipline discipline = Discipline::None;
   ULONGLONG discipline_start_time = 0;

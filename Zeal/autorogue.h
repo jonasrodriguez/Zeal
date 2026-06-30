@@ -11,7 +11,7 @@ class AutoRogue : public IAutoMelee {
   AutoRogue() = default;
   ~AutoRogue() override = default;
 
-  bool start(bool click) override;
+  bool start(const std::vector<std::string> &arguments) override;
   void tick() override;
 
   const char *name() const override { return "rogue"; }
@@ -24,6 +24,7 @@ class AutoRogue : public IAutoMelee {
   State state = State::Off;
 
   bool clickies = false;
+  bool hides = false;
 
   int backstab_slot = -1;
   int hide_slot = -1;

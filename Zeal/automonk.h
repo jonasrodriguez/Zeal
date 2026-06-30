@@ -12,7 +12,7 @@ class AutoMonk : public IAutoMelee {
   AutoMonk() = default;
   ~AutoMonk() override = default;
 
-  bool start(bool click) override;
+  bool start(const std::vector<std::string> &arguments) override;
   void tick() override;
 
   const char *name() const override { return "monk"; }

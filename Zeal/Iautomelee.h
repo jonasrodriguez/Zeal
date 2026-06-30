@@ -1,10 +1,13 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 class IAutoMelee {
  public:
   virtual ~IAutoMelee() = default;
 
-  virtual bool start(bool click) = 0;
+  virtual bool start(const std::vector<std::string>& arguments) = 0;
 
   virtual void tick() = 0;
 

@@ -9,9 +9,16 @@
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
 
-bool AutoMonk::start(bool click) {
+bool AutoMonk::start(const std::vector<std::string>& arguments) {
   state = State::On;
-  clickies = click;
+  clickies = false;
+  for (const auto& arg : arguments) {
+    if (Zeal::String::compare_insensitive(arg, "clickies")) {
+      clickies = true;
+      break;
+    }
+  }
+
   return find_hotbuttons();
 }
 

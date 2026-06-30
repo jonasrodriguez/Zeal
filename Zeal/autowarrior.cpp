@@ -12,18 +12,32 @@
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
 
-bool AutoWarrior::start(bool click) {
+bool AutoWarrior::start(const std::vector<std::string>& arguments) {
   state = State::On;
-  clickies = click;
+  clickies = false;
+  taunt = false;
+  for (const auto& arg : arguments) {
+    if (Zeal::String::compare_insensitive(arg, "clickies")) {
+      clickies = true;
+      break;
+    }
+    if (Zeal::String::compare_insensitive(arg, "taunt")) {
+      taunt = true;
+      break;
+    }
+  }
+  Zeal::Game::print_chat("AutoWarrior: Args -> Clickies: %s, Taunt: %s", clickies ? "ON" : "OFF", taunt ? "ON" : "OFF");
   return find_hotbuttons();
 }
 
 bool AutoWarrior::find_hotbuttons() {
   kick_btn = nullptr;
   clickies_btn = nullptr;
+  taunt_btn = nullptr;
 
   const std::string kick_label = "Kick";
   const std::string clickies_label = "Clickies";
+  const std::string taunt_label = "Taunt";
 
   auto* hb_wnd = Zeal::Game::Windows->HotButton;
   if (!hb_wnd) {
@@ -45,6 +59,10 @@ bool AutoWarrior::find_hotbuttons() {
     if (Zeal::String::compare_insensitive(std::string(text), clickies_label)) {
       clickies_btn = btn;
       clickies_slot = slot;
+    }
+    if (Zeal::String::compare_insensitive(std::string(text), taunt_label)) {
+      taunt_btn = btn;
+      taunt_slot = slot;
     }
   }
 
@@ -128,6 +146,11 @@ void AutoWarrior::tick() {
   // Kick !
   if (now - last_interval_time >= kCheckIntervalMs) {
     if (kick_btn && !kick_btn->Checked) {
+      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
+          reinterpret_cast<Zeal::GameUI::SidlWnd*>(kick_btn), 0, kick_slot, 0);
+      return;
+    }
+    if (taunt && taunt_btn && !taunt_btn->Checked) {
       reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
           reinterpret_cast<Zeal::GameUI::SidlWnd*>(kick_btn), 0, kick_slot, 0);
       return;

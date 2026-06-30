@@ -9,9 +9,21 @@
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
 
-bool AutoRogue::start(bool click) {
+bool AutoRogue::start(const std::vector<std::string>& arguments) {
   state = State::On;
-  clickies = click;
+  clickies = false;
+  hides = false;
+  for (const auto& arg : arguments) {
+    if (Zeal::String::compare_insensitive(arg, "clickies")) {
+      clickies = true;
+      break;
+    }
+    if (Zeal::String::compare_insensitive(arg, "hide")) {
+      hides = true;
+      break;
+    }
+  }
+  Zeal::Game::print_chat("AutoRogue: Args -> Clickies: %s, Hide: %s", clickies ? "ON" : "OFF", hides ? "ON" : "OFF");
   return find_hotbuttons();
 }
 
@@ -112,7 +124,7 @@ void AutoRogue::handle_combat(ULONGLONG now) {
       return;
     }
 
-    if (hide_btn && !hide_btn->Checked) {
+    if (hides &&hide_btn && !hide_btn->Checked) {
 
       // Do evade if avialable, its just faster
       if (evade_btn) {
@@ -121,7 +133,6 @@ void AutoRogue::handle_combat(ULONGLONG now) {
         return;
       }
 
-      state = State::StartHide;
       return;
     }
   }

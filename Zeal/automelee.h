@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "Iautomelee.h"
 
@@ -11,7 +13,7 @@ class AutoMelee {
   AutoMelee(class ZealService *zeal);
   ~AutoMelee();
 
-  void Enable(std::unique_ptr<IAutoMelee> new_handler, bool clickies);
+  void Enable(std::unique_ptr<IAutoMelee> new_handler, const std::vector<std::string>& arguments);
   void Disable();
 
  private:
