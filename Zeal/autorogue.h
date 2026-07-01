@@ -17,10 +17,9 @@ class AutoRogue : public IAutoMelee {
   const char *name() const override { return "rogue"; }
 
  private:
-  enum class State { Off, On, StartHide, Hide, FinishHide, Evade };
+  enum class State { Off, On };
 
   bool find_hotbuttons();
-  void handle_combat(ULONGLONG now);
   State state = State::Off;
 
   bool clickies = false;

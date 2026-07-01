@@ -23,7 +23,7 @@ bool AutoRogue::start(const std::vector<std::string>& arguments) {
       break;
     }
   }
-  Zeal::Game::print_chat("AutoRogue: Args -> Clickies: %s, Hide: %s", clickies ? "ON" : "OFF", hides ? "ON" : "OFF");
+  Zeal::Game::print_chat("AutoRogue: Clickies: %s, Hide: %s", clickies ? "ON" : "OFF", hides ? "ON" : "OFF");
   return find_hotbuttons();
 }
 
@@ -86,33 +86,6 @@ void AutoRogue::tick() {
 
   ULONGLONG now = GetTickCount64();
 
-  switch (state) {
-    case State::On:
-      handle_combat(now);
-      break;
-    case State::StartHide:
-      Zeal::Game::do_autoattack(false);
-      last_hide_attempt_time = now;
-      state = State::Hide;
-      break;
-    case State::Hide:
-      if (now - last_hide_attempt_time >= kHideAttemptMs) {
-        reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-            reinterpret_cast<Zeal::GameUI::SidlWnd*>(hide_btn), 0, hide_slot, 0);
-        state = State::FinishHide;
-        last_hide_attempt_time = now;
-      }
-      break;
-    case State::FinishHide:
-      if (now - last_hide_attempt_time >= kHideAttemptMs) {
-        Zeal::Game::do_autoattack(true);
-        state = State::On;
-      }
-      break;
-  }
-}
-
-void AutoRogue::handle_combat(ULONGLONG now) {
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
 
   if (now - last_interval_time >= kCheckIntervalMs) {
@@ -124,12 +97,11 @@ void AutoRogue::handle_combat(ULONGLONG now) {
       return;
     }
 
-    if (hides &&hide_btn && !hide_btn->Checked) {
-
+    if (hides && hide_btn && !hide_btn->Checked) {
       // Do evade if avialable, its just faster
       if (evade_btn) {
         reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-              reinterpret_cast<Zeal::GameUI::SidlWnd*>(evade_btn), 0, evade_slot, 0);
+            reinterpret_cast<Zeal::GameUI::SidlWnd*>(evade_btn), 0, evade_slot, 0);
         return;
       }
 
@@ -145,5 +117,5 @@ void AutoRogue::handle_combat(ULONGLONG now) {
     } else {
       ForwardCommand("/use Ring of Dain Frostreaver IV");
     }
-  }
+  }  
 }

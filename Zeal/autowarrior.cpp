@@ -26,7 +26,7 @@ bool AutoWarrior::start(const std::vector<std::string>& arguments) {
       break;
     }
   }
-  Zeal::Game::print_chat("AutoWarrior: Args -> Clickies: %s, Taunt: %s", clickies ? "ON" : "OFF", taunt ? "ON" : "OFF");
+  Zeal::Game::print_chat("AutoWarrior: Clickies: %s, Taunt: %s", clickies ? "ON" : "OFF", taunt ? "ON" : "OFF");
   return find_hotbuttons();
 }
 

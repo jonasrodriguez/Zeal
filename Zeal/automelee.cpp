@@ -12,6 +12,9 @@
 #include "automonk.h"
 #include "autowarrior.h"
 
+#include <sstream>
+#include <numeric>
+
 void AutoMelee::tick() {
   if (!handler) return;
   handler->tick();
@@ -19,11 +22,6 @@ void AutoMelee::tick() {
 
 void AutoMelee::Enable(std::unique_ptr<IAutoMelee> new_handler, const std::vector<std::string> &arguments) {
   if (!new_handler) return;
-
-  if (handler) {
-    Zeal::Game::print_chat("AutoMelee ya estaba habilitado en modo %s.", handler->name());
-    return;
-  }
 
   handler = std::move(new_handler);
   if (handler->start(arguments)) {
@@ -65,11 +63,17 @@ AutoMelee::AutoMelee(ZealService *zeal) {
       "Auto handles class specific skills like Kick or Backstab while in combat.",
       [this](std::vector<std::string> &args) {
         if (args.size() >= 2) {
-          bool clickies = false;
           std::vector<std::string> arguments;
-          if (args.size() > 3) {
-            arguments.assign(args.begin() + 1, args.end());
+          arguments.assign(args.begin() + 1, args.end());
+          std::ostringstream oss;
+          for (size_t i = 0; i < arguments.size(); ++i) {
+            oss << arguments[i];
+            if (i != arguments.size() - 1) {
+              oss << " ";  // Add space delimiter between words
+            }
           }
+
+          Zeal::Game::print_chat("AutoMelee: Arguments: %s", oss.str().c_str());
 
           if (Zeal::String::compare_insensitive(args[1], "off")) {
             Zeal::Game::print_chat("AutoMelee disabled.");  
