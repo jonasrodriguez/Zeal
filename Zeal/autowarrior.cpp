@@ -152,7 +152,7 @@ void AutoWarrior::tick() {
     }
     if (taunt && taunt_btn && !taunt_btn->Checked) {
       reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(kick_btn), 0, kick_slot, 0);
+          reinterpret_cast<Zeal::GameUI::SidlWnd*>(taunt_btn), 0, taunt_slot, 0);
       return;
     }
   }
