@@ -68,6 +68,8 @@
 
 #include "chetotarget.h"
 #include "automage.h"
+#include "autochanter.h"
+#include "sentry.h"
 
 extern HMODULE this_module;
 
@@ -185,6 +187,8 @@ ZealService::ZealService() {
   chainlead = MakeCheckedUnique(ChainLead);
   cheto_target = MakeCheckedUnique(ChetoTarget);
   auto_mage = MakeCheckedUnique(AutoMage);
+  auto_chanter = MakeCheckedUnique(AutoChanter);
+  sentry = MakeCheckedUnique(Sentry);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {

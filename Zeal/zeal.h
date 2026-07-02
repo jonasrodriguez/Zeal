@@ -98,6 +98,8 @@ class ZealService {
   std::unique_ptr<class ChainLead> chainlead = nullptr;
   std::unique_ptr<class ChetoTarget> cheto_target = nullptr;
   std::unique_ptr<class AutoMage> auto_mage = nullptr;
+  std::unique_ptr<class AutoChanter> auto_chanter = nullptr;
+  std::unique_ptr<class Sentry> sentry = nullptr;
 
  private:
   void AddCommands();  // Registers module dependent chat commands.
@@ -106,3 +108,4 @@ class ZealService {
   static ZealService *ptr_service;        // Pointer to this singleton-like object.
   std::vector<std::string> print_buffer;  // Queues/defers prints until UI is ready.
 };
+
