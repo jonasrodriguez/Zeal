@@ -15,6 +15,8 @@
 #include "target_ring.h"
 #include "zeal.h"
 
+#include "position_helper.h"
+
 void ForwardCommand(std::string cmd);
 
 void AutoMage::enable(bool castNuke, bool castMalo, bool castDS) {
@@ -71,7 +73,7 @@ void AutoMage::search_spells(bool castNuke, bool castMalo, bool castDS) {
       ds.gem = i;
     } else if (castNuke && spell_id == nuke.spell_id) {
       nuke.gem = i;
-    } else if (spell_id == malo.spell_id) {
+    } else if (castMalo && spell_id == malo.spell_id) {
       malo.gem = i;
     } else if (spell_id == burnout.spell_id) {
       burnout.gem = i;
@@ -98,11 +100,16 @@ bool AutoMage::handle_chat(const char *message, int color_index) {
   std::string player = match[1].str();
   std::string target = match[2].str();
 
-  Zeal::Game::print_chat("AutoMage: Assisting %s on %s", player.c_str(), target.c_str());
+  Zeal::Game::send_to_channel(tag_channel_number, std::format("AutoMage: Pet attack on on {}", target).c_str());
 
   ForwardCommand(std::format("/assist {}", player));
 
   state = Assist;
+
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  if (self->StandingState != Stance::Stand) {
+    self->ChangeStance(Stance::Stand);
+  }
 
   return false;
 }
@@ -150,14 +157,21 @@ void AutoMage::tick() {
 
 void AutoMage::tick_assist(ULONGLONG now) {
   Zeal::Game::do_autoattack(false);
-  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-  if (self->StandingState != Stance::Stand) {
-    self->ChangeStance(Stance::Stand);
-  }
+
   Zeal::GameStructures::Entity *target = Zeal::Game::get_target();
-  if (target) {
-    Zeal::Game::pet_command(Zeal::GameEnums::PetCommand::Attack, target->SpawnId);
+  if (!target) {
+    state = Idle;
+    return;
   }
+
+  Zeal::Game::pet_command(Zeal::GameEnums::PetCommand::Attack, target->SpawnId);
+
+  // Face the target
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  auto heading = PositionHelper::get_heading(self, target);
+  self->Heading = heading;
+  Zeal::Game::print_chat("AutoMage: Facing target %s at heading %.2f", target->Name, heading);
+
   if (malo.gem != -1) {
     state = Malo;
   } else if (nuke.gem != -1) {
@@ -167,6 +181,9 @@ void AutoMage::tick_assist(ULONGLONG now) {
   }
   last_action_time = now;
   casting_spell_id = kInvalidSpellId;
+
+  auto channel_number = Zeal::Game::get_channel_number(CHANNEL.c_str());
+  Zeal::Game::send_to_channel(channel_number, std::format("AutoMage: Pet attack on on {}", target->Name).c_str());
 }
 
 void AutoMage::tick_malo(ULONGLONG now) {

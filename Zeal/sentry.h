@@ -19,7 +19,7 @@ class Sentry {
 
  private:
   inline static const std::string CHANNEL = "grupete";
-  const float kMaxDist = 350;
+  const float kMaxDist = 500;
 
   enum SentryState { Idle, Attacking };
 
@@ -47,5 +47,5 @@ class Sentry {
   // File system for loading chain members
   void initialize_ini_filename();
   bool load();
-  IO_ini ini = IO_ini(".\\sentry_targets.ini");
+  IO_ini ini = IO_ini(".\\sentry.ini");
 };

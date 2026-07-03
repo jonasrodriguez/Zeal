@@ -21,11 +21,17 @@ void Sentry::enable(bool targets) {
   }
 
   Zeal::Game::print_chat("Sentry habilitado.");
+  state = Idle;
+  target = nullptr;
   sentry = true;
   all_targets = targets;
 }
 
-void Sentry::disable() { sentry = false; }
+void Sentry::disable() { 
+  state = Idle;
+  target = nullptr;
+  sentry = false; 
+}
 
 void Sentry::tick() {
   if (!sentry) return;
@@ -85,7 +91,7 @@ void Sentry::search_targets() {
 }
 
 void Sentry::initialize_ini_filename() {
-  std::string filename = "sentry_targets.ini";
+  std::string filename = "sentry.ini";
   std::filesystem::path file_path = Zeal::Game::get_game_path() / std::filesystem::path(filename);
   ini.set(file_path.string());
 }
