@@ -357,6 +357,9 @@
     <ClInclude Include="sentry.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
+    <ClInclude Include="autocombine.h">
+      <Filter>Header Files\hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -630,6 +633,9 @@
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
     <ClCompile Include="sentry.cpp">
+      <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="autocombine.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>

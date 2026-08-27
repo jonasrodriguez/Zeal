@@ -120,6 +120,7 @@
     <ClInclude Include="autochain.h" />
     <ClInclude Include="autocleric.h" />
     <ClInclude Include="autochanter.h" />
+    <ClInclude Include="autocombine.h" />
     <ClInclude Include="autofire.h" />
     <ClInclude Include="automage.h" />
     <ClInclude Include="automelee.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="autochain.cpp" />
     <ClCompile Include="autocleric.cpp" />
     <ClCompile Include="autochanter.cpp" />
+    <ClCompile Include="autocombine.cpp" />
     <ClCompile Include="autofire.cpp" />
     <ClCompile Include="automage.cpp" />
     <ClCompile Include="automelee.cpp" />

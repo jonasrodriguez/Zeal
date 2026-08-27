@@ -53,34 +53,44 @@ void ChetoTarget::find_item(const std::string &item_visual_id) {
   auto intvalue = std::atoi(item_visual_id.c_str());    
   auto entities = ZealService::get_instance()->entity_manager.get()->GetAll();
 
+  Zeal::Game::print_chat("ChetoTarget: Looking for item with visual id '%d'.", intvalue);
+
   for (auto entity : entities) {
     if (!entity.second) continue;
     
     if (entity.second->EquipmentPrimaryItemType == intvalue) {
-      ZealService::get_instance()->zone_map->add_marker(static_cast<int>(entity.second->Position.x),
-                                                        static_cast<int>(entity.second->Position.y),
-                                                        entity.second->Name);        
+
+      Zeal::Game::print_chat("ChetoTarget: Found NPC %s with item '%d'.", entity.second->Name, intvalue);
+      targets.push_back(entity.second);
     }
   }
 }
 
 void ChetoTarget::tick() {
+  auto now = GetTickCount64();
 
-  if (targets.size() == 0) return;
-
-  // Update map markers each second
-   auto now = GetTickCount64();
-
-  if (now - markers_timestamp >= 1000) {
+  if (!is_updating && (now - markers_timestamp >= 1000)) {
     markers_timestamp = now;
-    for (auto target : targets) {
-      if (!target) continue;
-      ZealService::get_instance()->zone_map->add_marker(
-          static_cast<int>(target->Position.x),
-          static_cast<int>(target->Position.y),
-          target->Name);
-    }
+    target_index = 0;
+    is_updating = true;
   }
+
+  if (is_updating) {
+    if (target_index < targets.size()) {
+      auto target = targets[target_index++];
+      if (target) {
+          ZealService::get_instance()->zone_map->add_marker(static_cast<int>(target->Position.x),
+                                                            static_cast<int>(target->Position.y),
+                                                            target->Name,
+                                                            false);
+      }
+    }
+    // Processing complete for this single tick -> function exits here
+    return;
+  }
+
+  // 3. Reached the end of targets vector, stop updating until next second trigger
+  is_updating = false;
 }
 
 ChetoTarget::ChetoTarget(ZealService *zeal) {
