@@ -14,36 +14,46 @@ void ChetoTarget::Disable() {
   ZealService::get_instance()->zone_map->clear();
 }
 
-void ChetoTarget::find_target(const std::string &arg, bool mapa) {
+void ChetoTarget::find_target(const std::string &nombre) {
 
-  if (arg.empty()) return;
+  if (nombre.empty()) return;
+  if (!std::all_of(nombre.begin(), nombre.end(), ::isdigit)) return;
 
   auto entity_manager = ZealService::get_instance()->entity_manager.get();
+  if (!entity_manager) {
+    Zeal::Game::print_chat("ChetoTarget: Entity manager not available.");
+    return;
+  }
 
-  if (std::all_of(arg.begin(), arg.end(), ::isdigit)) {
-    auto target = entity_manager->Get(static_cast<WORD>(std::stoi(arg)));
-    if (target) {
-      Zeal::Game::do_target(target->Name);
-      Zeal::Game::print_chat("ChetoTarget: Targeting entity with ID '%s'.", arg.c_str());
-      if (mapa) {
-        targets.push_back(target);
-      }
-    } else {
-      Zeal::Game::print_chat("ChetoTarget: No entity found with ID '%s'.", arg.c_str());
-    }
-  } else {
-    auto matches = entity_manager->GetNPCPartialMatches(arg);
-    if (matches.size() > 0) {
-      auto target = matches[0];
-      Zeal::Game::set_target(target);
-      if (mapa) {
-        targets.assign(matches.begin(), matches.end());
-      }
-    } else {
-      Zeal::Game::print_chat("ChetoTarget: No entities found with name '%s'.", arg.c_str());
-      return;
+  auto entities = entity_manager->GetAll();
+  if (entities.empty()) {
+    Zeal::Game::print_chat("ChetoTarget: No entities found in the current zone.");
+    return;
+  }
+
+  std::vector<Zeal::GameStructures::Entity *> found;
+
+  for (auto entity : entities) {
+
+    if (entity.first.empty()) continue;
+
+    if (Zeal::String::contains(entity.first, nombre)) {
+      found.push_back(entity.second);
     }
   }
+
+  if (found.empty()) {
+    Zeal::Game::print_chat("ChetoTarget: No se han encontrado entidades '%s'.", nombre.c_str());
+  }
+
+  targets.insert(targets.end(), found.begin(), found.end());
+  auto first = found.front();
+  Zeal::Game::do_target(first->Name);
+  if (found.size() == 1) {
+    Zeal::Game::print_chat("ChetoTarget: Se ha encontrado '%s'.", first->Name);
+  } else {
+    Zeal::Game::print_chat("ChetoTarget: Se han encontrado %d entidades coincidentes. Se ha seleccionado la primera.", found.size());
+  } 
 }
 
 void ChetoTarget::find_item(const std::string &item_visual_id) {
@@ -105,10 +115,6 @@ ChetoTarget::ChetoTarget(ZealService *zeal) {
   zeal->commands_hook->Add("/chetotarget", {"/ct"}, "Tries to target far away target.",
     [this](std::vector<std::string> &args) {
         if (args.size() >= 2) {
-            bool mapa = false;
-            if (args.size() == 3 && Zeal::String::compare_insensitive(args[2], "mapa")) {
-              mapa = true;
-            }
 
             if (Zeal::String::compare_insensitive(args[1], "off")) {
               Disable();
@@ -116,7 +122,7 @@ ChetoTarget::ChetoTarget(ZealService *zeal) {
             }
 
             if (args[1].size() > 0) {
-              find_target(args[1], mapa);
+              find_target(args[1]);
               return true;
             }
 

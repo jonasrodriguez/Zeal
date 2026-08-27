@@ -71,6 +71,18 @@ bool compare_insensitive(const std::string &str1, const std::string &str2) {
   return str1Lower == str2Lower;
 }
 
+bool contains(const std::string& str1, const std::string& str2) {
+  
+  // Convert both strings to lowercase and then compare
+  std::string str1Lower = str1;
+  std::string str2Lower = str2;
+  std::transform(str1Lower.begin(), str1Lower.end(), str1Lower.begin(), ::tolower);
+  std::transform(str2Lower.begin(), str2Lower.end(), str2Lower.begin(), ::tolower);
+
+  // Return true if str2Lower is found inside str1Lower
+  return str1Lower.find(str2Lower) != std::string::npos;
+}
+
 std::vector<std::string> split(const std::string &str, const std::string &delim) {
   std::string trimmed = trim_and_reduce_spaces(str);
   std::vector<std::string> tokens;

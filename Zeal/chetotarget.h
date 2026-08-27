@@ -13,7 +13,7 @@ class ChetoTarget {
 
  private:
   void tick();
-  void find_target(const std::string &name, bool mapa);
+  void find_target(const std::string &name);
   void find_item(const std::string &item_visual_id);
 
   size_t target_index = 0;
