@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#define ZEAL_VERSION "1.4.2"
+#define ZEAL_VERSION "1.4.5"
 #ifndef ZEAL_BUILD_VERSION               // Set by github actions
 #define ZEAL_BUILD_VERSION "UNOFFICIAL"  // Local build
 #endif
@@ -59,6 +59,7 @@ class ZealService {
   std::unique_ptr<class MusicManager> music = nullptr;
   std::unique_ptr<class Alarm> alarm = nullptr;
   std::unique_ptr<class Melody> melody = nullptr;
+  std::unique_ptr<class Page10Binds> page10_binds = nullptr;
   std::unique_ptr<class AutoFire> autofire = nullptr;
   std::unique_ptr<class Netstat> netstat = nullptr;
   std::unique_ptr<class Tick> tick = nullptr;
@@ -77,6 +78,7 @@ class ZealService {
   std::unique_ptr<class EquipItem> equip_item_hook = nullptr;
   std::unique_ptr<class chatfilter> chatfilter_hook = nullptr;
   std::unique_ptr<class Chat> chat_hook = nullptr;
+  std::unique_ptr<class UI_HideFakeSlots> ui_hide_fake_slots = nullptr;
   std::unique_ptr<class NamePlate> nameplate = nullptr;
   std::unique_ptr<class TellWindows> tells = nullptr;
   std::unique_ptr<class Looting> looting_hook = nullptr;

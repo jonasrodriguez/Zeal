@@ -169,6 +169,7 @@
     <ClInclude Include="named_pipe.h" />
     <ClInclude Include="nameplate.h" />
     <ClInclude Include="npc_give.h" />
+    <ClInclude Include="page10_binds.h" />
     <ClInclude Include="patches.h" />
     <ClInclude Include="physics.h" />
     <ClInclude Include="target_ring.h" />
@@ -208,6 +209,7 @@
     <ClInclude Include="spellsets.h" />
     <ClInclude Include="string_util.h" />
     <ClInclude Include="ui_guild.h" />
+    <ClInclude Include="ui_hide_fake_slots.h" />
     <ClInclude Include="ui_hotbutton.h" />
     <ClInclude Include="ui_loot.h" />
     <ClInclude Include="ui_manager.h" />
@@ -270,6 +272,7 @@
     <ClCompile Include="named_pipe.cpp" />
     <ClCompile Include="nameplate.cpp" />
     <ClCompile Include="npc_give.cpp" />
+    <ClCompile Include="page10_binds.cpp" />
     <ClCompile Include="patches.cpp" />
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="target_ring.cpp" />
@@ -302,6 +305,7 @@
     <ClCompile Include="spellsets.cpp" />
     <ClCompile Include="string_util.cpp" />
     <ClCompile Include="ui_guild.cpp" />
+    <ClCompile Include="ui_hide_fake_slots.cpp" />
     <ClCompile Include="ui_hotbutton.cpp" />
     <ClCompile Include="ui_loot.cpp" />
     <ClCompile Include="ui_manager.cpp" />
