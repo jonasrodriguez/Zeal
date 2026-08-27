@@ -17,7 +17,7 @@ void ChetoTarget::Disable() {
 void ChetoTarget::find_target(const std::string &nombre) {
 
   if (nombre.empty()) return;
-  if (!std::all_of(nombre.begin(), nombre.end(), ::isdigit)) return;
+  //if (!std::all_of(nombre.begin(), nombre.end(), ::isdigit)) return;
 
   auto entity_manager = ZealService::get_instance()->entity_manager.get();
   if (!entity_manager) {
@@ -33,7 +33,7 @@ void ChetoTarget::find_target(const std::string &nombre) {
 
   std::vector<Zeal::GameStructures::Entity *> found;
 
-  for (auto entity : entities) {
+  for (auto &entity : entities) {
 
     if (entity.first.empty()) continue;
 
@@ -43,12 +43,13 @@ void ChetoTarget::find_target(const std::string &nombre) {
   }
 
   if (found.empty()) {
-    Zeal::Game::print_chat("ChetoTarget: No se han encontrado entidades '%s'.", nombre.c_str());
+    Zeal::Game::print_chat("ChetoTarget: No se han encontrado npcs con nombre '%s'.", nombre.c_str());
+    return;
   }
 
   targets.insert(targets.end(), found.begin(), found.end());
   auto first = found.front();
-  Zeal::Game::do_target(first->Name);
+  Zeal::Game::set_target(first);
   if (found.size() == 1) {
     Zeal::Game::print_chat("ChetoTarget: Se ha encontrado '%s'.", first->Name);
   } else {
@@ -77,30 +78,32 @@ void ChetoTarget::find_item(const std::string &item_visual_id) {
 }
 
 void ChetoTarget::tick() {
-  auto now = GetTickCount64();
 
+  if (targets.empty()) return;
+
+  auto now = GetTickCount64();
   if (!is_updating && (now - markers_timestamp >= 1000)) {
     markers_timestamp = now;
     target_index = 0;
     is_updating = true;
+    ZealService::get_instance()->zone_map->clear();
   }
 
   if (is_updating) {
     if (target_index < targets.size()) {
       auto target = targets[target_index++];
       if (target) {
-          ZealService::get_instance()->zone_map->add_marker(static_cast<int>(target->Position.x),
-                                                            static_cast<int>(target->Position.y),
-                                                            target->Name,
-                                                            false);
+        ZealService::get_instance()->zone_map->add_marker(static_cast<int>(target->Position.x),
+                                                          static_cast<int>(target->Position.y), 
+                                                          target->Name,
+                                                          false);      
       }
+      return;  // one marker per tick, more work left
     }
-    // Processing complete for this single tick -> function exits here
-    return;
-  }
 
-  // 3. Reached the end of targets vector, stop updating until next second trigger
-  is_updating = false;
+    // target_index reached the end this tick — finish up, don't return early
+    is_updating = false;
+  }
 }
 
 ChetoTarget::ChetoTarget(ZealService *zeal) {
@@ -129,7 +132,7 @@ ChetoTarget::ChetoTarget(ZealService *zeal) {
             return true;
         }
 
-        Zeal::Game::print_chat("Uso: /chetotarget name | id | off <mapa | >");
+        Zeal::Game::print_chat("Uso: /chetotarget name | off");
         return true;
     });
 
