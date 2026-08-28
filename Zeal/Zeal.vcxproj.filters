@@ -49,6 +49,30 @@
     <Filter Include="UI Files">
       <UniqueIdentifier>{5ac2a0c8-3a18-4026-bc6e-1cf0e43c27cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\hooks\raid">
+      <UniqueIdentifier>{6274d0b3-4e38-43f0-b3fb-aad4e44fdc15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hooks\classes">
+      <UniqueIdentifier>{2a31c9fe-1d63-4f8b-af49-75274fa07c1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hooks\tradeskills">
+      <UniqueIdentifier>{12e0eb33-40cd-4996-a6e9-b986dd0eba74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hooks\helpers">
+      <UniqueIdentifier>{d466f044-0219-45ef-bd38-180d102c14e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hooks\classes">
+      <UniqueIdentifier>{68fedf22-2fc3-4921-9403-b7a825bd6648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hooks\helpers">
+      <UniqueIdentifier>{728a65ae-5366-413e-b407-a7853c938700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hooks\raid">
+      <UniqueIdentifier>{1ee1e69f-2826-48ed-97c8-20586c8847df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hooks\tradeskills">
+      <UniqueIdentifier>{05f4c2e7-1dd0-4037-bd6a-47f2d11d0084}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memory.h">
@@ -309,62 +333,68 @@
     <ClInclude Include="bandolier.h">
       <Filter>Header Files\hooks</Filter>
     </ClInclude>
-    <ClInclude Include="autoability.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="automelee.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="autocleric.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="autochain.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="chainlead.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="autorogue.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
     <ClInclude Include="Iautomelee.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="automonk.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="autowarrior.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="chetotarget.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="automage.h">
-      <Filter>Header Files\hooks</Filter>
     </ClInclude>
     <ClInclude Include="spell.h">
       <Filter>Header Files\helpers</Filter>
     </ClInclude>
-    <ClInclude Include="autochanter.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="autobst.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="auto_face.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
-    <ClInclude Include="come_close.h">
-      <Filter>Header Files\hooks</Filter>
-    </ClInclude>
     <ClInclude Include="position_helper.h">
       <Filter>Header Files\helpers</Filter>
     </ClInclude>
-    <ClInclude Include="sentry.h">
-      <Filter>Header Files\hooks</Filter>
+    <ClInclude Include="autoranger.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="automage.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="autobst.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="autochanter.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="autocleric.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="automelee.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="automonk.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="autorogue.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="autowarrior.h">
+      <Filter>Header Files\hooks\classes</Filter>
+    </ClInclude>
+    <ClInclude Include="autochain.h">
+      <Filter>Header Files\hooks\raid</Filter>
     </ClInclude>
     <ClInclude Include="autocombine.h">
-      <Filter>Header Files\hooks</Filter>
+      <Filter>Header Files\hooks\tradeskills</Filter>
+    </ClInclude>
+    <ClInclude Include="come_close.h">
+      <Filter>Header Files\hooks\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="chetotarget.h">
+      <Filter>Header Files\hooks\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="chainlead.h">
+      <Filter>Header Files\hooks\raid</Filter>
+    </ClInclude>
+    <ClInclude Include="autoability.h">
+      <Filter>Header Files\hooks\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="chat_helper.h">
+      <Filter>Header Files\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="sentry.h">
+      <Filter>Header Files\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="auto_face.h">
+      <Filter>Header Files\helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -473,7 +503,7 @@
     <ClCompile Include="ui_guild.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
-        <ClCompile Include="ui_hide_fake_slots.cpp">
+    <ClCompile Include="ui_hide_fake_slots.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="named_pipe.cpp">
@@ -599,56 +629,62 @@
     <ClCompile Include="bandolier.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
-    <ClCompile Include="autoability.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="automelee.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="autocleric.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="autochain.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="chainlead.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="autorogue.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="automonk.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="autowarrior.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="chetotarget.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="automage.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="autochanter.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="autobst.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="auto_face.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
-    <ClCompile Include="come_close.cpp">
-      <Filter>Source Files\hooks</Filter>
-    </ClCompile>
     <ClCompile Include="position_helper.cpp">
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
-    <ClCompile Include="sentry.cpp">
-      <Filter>Source Files\hooks</Filter>
+    <ClCompile Include="autoranger.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="automage.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autobst.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autochanter.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autocleric.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="automelee.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="automonk.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autorogue.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autowarrior.cpp">
+      <Filter>Source Files\hooks\classes</Filter>
     </ClCompile>
     <ClCompile Include="autocombine.cpp">
-      <Filter>Source Files\hooks</Filter>
+      <Filter>Source Files\hooks\tradeskills</Filter>
+    </ClCompile>
+    <ClCompile Include="autochain.cpp">
+      <Filter>Source Files\hooks\raid</Filter>
+    </ClCompile>
+    <ClCompile Include="autoability.cpp">
+      <Filter>Source Files\hooks\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="chainlead.cpp">
+      <Filter>Source Files\hooks\raid</Filter>
+    </ClCompile>
+    <ClCompile Include="chetotarget.cpp">
+      <Filter>Source Files\hooks\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="come_close.cpp">
+      <Filter>Source Files\hooks\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="chat_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="sentry.cpp">
+      <Filter>Source Files\hooks\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="auto_face.cpp">
+      <Filter>Source Files\helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

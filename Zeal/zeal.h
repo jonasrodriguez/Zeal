@@ -100,6 +100,7 @@ class ZealService {
   std::unique_ptr<class ChainLead> chainlead = nullptr;
   std::unique_ptr<class ChetoTarget> cheto_target = nullptr;
   std::unique_ptr<class AutoMage> auto_mage = nullptr;
+  std::unique_ptr<class AutoRanger> auto_ranger = nullptr;
   std::unique_ptr<class AutoChanter> auto_chanter = nullptr;
   std::unique_ptr<class Sentry> sentry = nullptr;
 

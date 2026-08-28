@@ -70,6 +70,7 @@
 
 #include "chetotarget.h"
 #include "automage.h"
+#include "autoranger.h"
 #include "autochanter.h"
 #include "sentry.h"
 
@@ -193,6 +194,7 @@ ZealService::ZealService() {
   auto_mage = MakeCheckedUnique(AutoMage);
   auto_chanter = MakeCheckedUnique(AutoChanter);
   sentry = MakeCheckedUnique(Sentry);
+  auto_ranger = MakeCheckedUnique(AutoRanger);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {
