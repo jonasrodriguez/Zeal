@@ -7,7 +7,7 @@
 #include "auto_face.h"
 
 #include "game_structures.h"
-#include "spell.h"
+#include "spell_helper.h"
 
 class AutoRanger {
  public:
@@ -21,21 +21,25 @@ class AutoRanger {
   ChatHelper chat_helper;
   AutoFace auto_face;
 
-  enum RangerState { Idle, Assist, Fire, Snare };
+  enum RangerState { Idle, Face, Fire, Snare };
 
   void tick();
   void tick_face();
-  void tick_assist();
+  void tick_snare();
+  void tick_auto_fire();
 
   void handle_chat(const char *message, int color_index);
 
+  bool cast_snare = false;
   bool auto_ranger = false;
   RangerState state = Idle;
 
   Spell snare{-1, 512};
+  SpellSet spellset{&snare};
+  SpellHelper spell_helper;
 
   WORD casting_spell_id = kInvalidSpellId;
 
   ULONGLONG last_interval_time;
-  static constexpr DWORD kCheckIntervalMs = 500;
+  static constexpr DWORD kCheckIntervalMs = 200;
 };

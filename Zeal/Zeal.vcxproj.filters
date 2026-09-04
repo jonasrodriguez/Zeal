@@ -396,6 +396,9 @@
     <ClInclude Include="auto_face.h">
       <Filter>Header Files\helpers</Filter>
     </ClInclude>
+    <ClInclude Include="spell_helper.h">
+      <Filter>Header Files\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -684,6 +687,9 @@
       <Filter>Source Files\hooks\helpers</Filter>
     </ClCompile>
     <ClCompile Include="auto_face.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="spell_helper.cpp">
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
   </ItemGroup>

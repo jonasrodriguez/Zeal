@@ -17,13 +17,24 @@
 void ForwardCommand(std::string cmd);
 
 void AutoRanger::enable(bool castSnare) {
+  cast_snare = castSnare;
   auto_ranger = true; 
   state = Idle;
-  Zeal::Game::print_chat("AutoRanger habilitado.");
+
+  if (castSnare) {
+    spell_helper.search_spells(spellset);
+    if (spell_helper.missing_spell(spellset)) {
+      Zeal::Game::print_chat("AutoRanger: Missing \"Esnare\".");
+      auto_ranger = false;
+      return;
+    }
+  }
+
+  Zeal::Game::print_chat("AutoRanger habilitado" + std::string(castSnare ? " con snare." : "."));
 }
 
 void AutoRanger::disable() {
-
+  state = Idle;
   auto_ranger = false; 
 }
 
@@ -36,7 +47,7 @@ void AutoRanger::handle_chat(const char *message, int color_index) {
     Zeal::Game::set_target(nullptr);
     ForwardCommand(std::format("/assist {}", target));
     last_interval_time = GetTickCount64();
-    state = Assist;
+    state = Face;
   }
 }
 
@@ -49,19 +60,45 @@ void AutoRanger::tick() {
   if (now - last_interval_time < kCheckIntervalMs) return;
   last_interval_time = now;
 
-  if (state == Assist) {
-    tick_face();
-  } else if (state == Fire) {
-    tick_assist();
+  switch (state) {
+    case Face:
+      tick_face();
+      break;
+    case Snare:
+      tick_snare();
+      break;
+    case Fire:
+      tick_auto_fire();
+      break;
+    case Idle:
+    default:
+      return;
   }
 }
 
 void AutoRanger::tick_face() { 
+
+  if (!Zeal::Game::get_target()) {
+    return;
+  }
+
   auto_face.face_target();
-  state = Fire;
+
+  if (cast_snare) {
+    state = Snare;    
+  } else {
+    state = Fire;
+  }
 }
 
-void AutoRanger::tick_assist() {
+void AutoRanger::tick_snare() {
+  if (spell_helper.cast_spell(snare)) {
+    Zeal::Game::print_chat("AutoRanger: Esnared!");
+    state = Fire;
+  }
+}
+
+void AutoRanger::tick_auto_fire() {
   ZealService::get_instance()->autofire->SetAutoFire(true, true);
   state = Idle;
 }

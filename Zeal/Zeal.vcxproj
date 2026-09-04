@@ -154,6 +154,7 @@
     <ClInclude Include="raid_bars_manage.h" />
     <ClInclude Include="sentry.h" />
     <ClInclude Include="spell.h" />
+    <ClInclude Include="spell_helper.h" />
     <ClInclude Include="survey.h" />
     <ClInclude Include="tag_arrows.h" />
     <ClInclude Include="tick.h" />
@@ -259,6 +260,7 @@
     <ClCompile Include="raid_bars.cpp" />
     <ClCompile Include="raid_bars_manage.cpp" />
     <ClCompile Include="sentry.cpp" />
+    <ClCompile Include="spell_helper.cpp" />
     <ClCompile Include="survey.cpp" />
     <ClCompile Include="tag_arrows.cpp" />
     <ClCompile Include="tick.cpp" />
