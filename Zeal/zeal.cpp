@@ -71,7 +71,7 @@
 #include "chetotarget.h"
 #include "automage.h"
 #include "autoranger.h"
-#include "autochanter.h"
+#include "autoenchanter.h"
 #include "sentry.h"
 
 extern HMODULE this_module;
@@ -185,16 +185,21 @@ ZealService::ZealService() {
   spell_sets = MakeCheckedUnique(SpellSets);        // Uses ui->inputDialog.
   survey = MakeCheckedUnique(Survey);               // Uses UI manager and input dialog.
 
-  autoability = MakeCheckedUnique(AutoAbility);
-  automelee = MakeCheckedUnique(AutoMelee);
-  autocleric = MakeCheckedUnique(AutoCleric);
-  autochain = MakeCheckedUnique(AutoChain);
-  chainlead = MakeCheckedUnique(ChainLead);
-  cheto_target = MakeCheckedUnique(ChetoTarget);
+  // Classes
+  auto_melee = MakeCheckedUnique(AutoMelee);
+  autoc_cleric = MakeCheckedUnique(AutoCleric);
   auto_mage = MakeCheckedUnique(AutoMage);
-  auto_chanter = MakeCheckedUnique(AutoChanter);
-  sentry = MakeCheckedUnique(Sentry);
+  auto_enchanter = MakeCheckedUnique(AutoEnchanter);
   auto_ranger = MakeCheckedUnique(AutoRanger);
+
+  // Helper
+  auto_ability = MakeCheckedUnique(AutoAbility);
+  cheto_target = MakeCheckedUnique(ChetoTarget);
+  sentry = MakeCheckedUnique(Sentry);
+
+  // Raid
+  autochain = MakeCheckedUnique(AutoChain);
+  chain_lead = MakeCheckedUnique(ChainLead);
 
   callbacks->AddGeneric([this]() {
     if (Zeal::Game::is_in_game() && print_buffer.size()) {

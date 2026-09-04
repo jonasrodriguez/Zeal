@@ -4,19 +4,25 @@
 #include <string>
 
 #include "game_structures.h"
-#include "spell.h"
 
-class AutoChanter {
+#include "chat_helper.h"
+#include "auto_face.h"
+#include "spell.h"
+#include "spell_helper.h"
+
+class AutoEnchanter {
  public:
-  AutoChanter(class ZealService *zeal);
-  ~AutoChanter();
+  AutoEnchanter(class ZealService *zeal);
+  ~AutoEnchanter() {}
 
   void enable();
   void disable();
 
  private:
-  inline static const std::string CHANNEL = "grupete";
-  static constexpr int STUN_RANGE = 35;
+  static constexpr int STUN_RANGE = 55;
+
+  ChatHelper chat_helper;
+  AutoFace auto_face;
 
   enum EncState { Idle, Assist, Stun, Charm, AboutToSit };
 
@@ -24,22 +30,26 @@ class AutoChanter {
   void cast_spell(const Spell &spell);
 
   bool handle_chat_channel(const char *message, int color_index);
-  void handle_print(const char *message, int color_index);
 
   void tick();
-  void tick_assist(ULONGLONG now);
-  void tick_stun(ULONGLONG now);
+  void tick_assist();
+  void tick_stun();
+  void tick_charm();
 
-  bool auto_chanter = false;
+  bool pet_break();
+
+  bool auto_enchanter = false;
   EncState state = Idle;
 
   Spell stun{-1, 1696}; // Color Slant
   Spell charm{-1, 1705};  // Boltran`s Agacerie
+  SpellSet spellset{&stun, &charm};
+  SpellHelper spell_helper;
 
   Zeal::GameStructures::Entity *my_pet = nullptr;
 
   WORD casting_spell_id = kInvalidSpellId;
 
   ULONGLONG last_interval_time = 0;
-  static constexpr DWORD kCheckIntervalMs = 500;
+  static constexpr DWORD kCheckIntervalMs = 200;
 };

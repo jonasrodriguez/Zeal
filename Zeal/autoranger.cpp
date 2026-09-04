@@ -35,7 +35,8 @@ void AutoRanger::enable(bool castSnare) {
 
 void AutoRanger::disable() {
   state = Idle;
-  auto_ranger = false; 
+  auto_ranger = false;
+  spell_helper.reset_spells(spellset);
 }
 
 void AutoRanger::handle_chat(const char *message, int color_index) {
@@ -43,7 +44,7 @@ void AutoRanger::handle_chat(const char *message, int color_index) {
 
   auto target = chat_helper.assist_listener(message, color_index);
   if (!target.empty()) {
-    Zeal::Game::print_chat(std::format("AutoRanger: Assist on {}", target));
+    Zeal::Game::print_chat(std::format("AutoRanger: Assisting on {}", target));
     Zeal::Game::set_target(nullptr);
     ForwardCommand(std::format("/assist {}", target));
     last_interval_time = GetTickCount64();

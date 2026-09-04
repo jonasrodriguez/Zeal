@@ -3,10 +3,10 @@
 #include <Windows.h>
 #include <string>
 
+#include "game_structures.h"
+
 #include "chat_helper.h"
 #include "auto_face.h"
-
-#include "game_structures.h"
 #include "spell_helper.h"
 
 class AutoRanger {

@@ -93,16 +93,21 @@ class ZealService {
 
   std::unique_ptr<class NamedPipe> pipe = nullptr;
 
-  std::unique_ptr<class AutoAbility> autoability = nullptr;
-  std::unique_ptr<class AutoMelee> automelee = nullptr;
-  std::unique_ptr<class AutoCleric> autocleric = nullptr;
-  std::unique_ptr<class AutoChain> autochain = nullptr;
-  std::unique_ptr<class ChainLead> chainlead = nullptr;
-  std::unique_ptr<class ChetoTarget> cheto_target = nullptr;
+  // Classes
   std::unique_ptr<class AutoMage> auto_mage = nullptr;
   std::unique_ptr<class AutoRanger> auto_ranger = nullptr;
-  std::unique_ptr<class AutoChanter> auto_chanter = nullptr;
+  std::unique_ptr<class AutoEnchanter> auto_enchanter = nullptr;
+  std::unique_ptr<class AutoMelee> auto_melee = nullptr;
+  std::unique_ptr<class AutoCleric> autoc_cleric = nullptr;
+
+  // Helpers
+  std::unique_ptr<class AutoAbility> auto_ability = nullptr;
+  std::unique_ptr<class ChetoTarget> cheto_target = nullptr;
   std::unique_ptr<class Sentry> sentry = nullptr;
+
+  // Raid
+  std::unique_ptr<class AutoChain> autochain = nullptr;
+  std::unique_ptr<class ChainLead> chain_lead = nullptr;
 
  private:
   void AddCommands();  // Registers module dependent chat commands.

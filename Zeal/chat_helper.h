@@ -19,5 +19,5 @@ class ChatHelper {
   //   "PlayerName tells Grupete:1, 'Assist me on TargetName'"
   //   "PlayerName tells the group, 'Assist me on TargetName'"
   //   "PlayerName tells the raid, 'Assist me on TargetName'"
-  inline static const std::regex ASSIST_PATTTERN {R"((\S+) tells .*Assist me on)", std::regex_constants::icase};
+  inline static const std::regex ASSIST_PATTTERN {R"((\S+) tells .*?Assist me on)", std::regex_constants::icase};
 };
