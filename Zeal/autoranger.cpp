@@ -16,21 +16,26 @@
 
 void ForwardCommand(std::string cmd);
 
-void AutoRanger::enable(bool castSnare) {
+void AutoRanger::enable(bool castSnare, bool castBuff) {
   cast_snare = castSnare;
   auto_ranger = true; 
   state = Idle;
 
-  if (castSnare) {
-    spell_helper.search_spells(spellset);
-    if (spell_helper.missing_spell(spellset)) {
-      Zeal::Game::print_chat("AutoRanger: Missing \"Esnare\".");
-      auto_ranger = false;
+  spell_helper.search_spells(spellset);
+  if (spell_helper.missing_spell(spellset)) {
+    Zeal::Game::print_chat("AutoRanger: Missing \"Esnare\", \"Eagle Eye\" or \"Nature's Precision\".");
+
+    if (castSnare && snare.gem == -1) {
+      disable();
+      return;
+    }
+    if (castBuff && (eagle.gem == -1 || precision.gem == -1)) {
+      disable();
       return;
     }
   }
 
-  Zeal::Game::print_chat("AutoRanger habilitado" + std::string(castSnare ? " con snare." : "."));
+  Zeal::Game::print_chat(std::format("AutoRanger habilitado {} {}", castSnare ? "con snare" : "", castBuff ? "con buffs" : ""));
 }
 
 void AutoRanger::disable() {
@@ -55,11 +60,14 @@ void AutoRanger::handle_chat(const char *message, int color_index) {
 void AutoRanger::tick() {
   if (!auto_ranger) return;
 
-  if (state == Idle) return;
-
   auto now = GetTickCount64();
   if (now - last_interval_time < kCheckIntervalMs) return;
   last_interval_time = now;
+
+  // Check buffs fading if idle
+  if (state == Idle) {
+    check_buffs();
+  }
 
   switch (state) {
     case Face:
@@ -71,6 +79,9 @@ void AutoRanger::tick() {
     case Fire:
       tick_auto_fire();
       break;
+    case Buff:
+      tick_buff();
+      break;
     case Idle:
     default:
       return;
@@ -78,13 +89,10 @@ void AutoRanger::tick() {
 }
 
 void AutoRanger::tick_face() { 
-
   if (!Zeal::Game::get_target()) {
     return;
   }
-
   auto_face.face_target();
-
   if (cast_snare) {
     state = Snare;    
   } else {
@@ -104,6 +112,22 @@ void AutoRanger::tick_auto_fire() {
   state = Idle;
 }
 
+void AutoRanger::tick_buff() {
+  if (spell_helper.cast_spell(buff)) {
+    state = Idle;
+  }
+}
+
+void AutoRanger::check_buffs() {
+  auto spell = SpellHelper::get_fading_buff({eagle, precision});
+  if (spell.spell_id != -1) {
+    Zeal::Game::print_chat("AutoRanger: Rebuffing...");
+    Zeal::Game::set_target(Zeal::Game::get_self());
+    buff = spell;
+    state = Buff;
+  }
+}
+
 AutoRanger::AutoRanger(ZealService *zeal) {
   // Disable on zone transitions and character select.
   zeal->callbacks->AddGeneric([this]() { disable(); }, callback_type::CharacterSelect);
@@ -121,6 +145,7 @@ AutoRanger::AutoRanger(ZealService *zeal) {
     [this](std::vector<std::string> &args) {
         int args_size = args.size();
         bool castSnare = false;
+        bool castBuff = false;
 
         if (args_size > 1) {
             if (Zeal::String::compare_insensitive(args[1], "off")) {
@@ -133,10 +158,13 @@ AutoRanger::AutoRanger(ZealService *zeal) {
                 if (Zeal::String::compare_insensitive(args[i], "snare")) {
                     castSnare = true;
                 }
+                if (Zeal::String::compare_insensitive(args[i], "buffs")) {
+                  castBuff = true;
+                }
             }
         }
 
-        enable(castSnare);
+        enable(castSnare, castBuff);
         return true;
     });
 }

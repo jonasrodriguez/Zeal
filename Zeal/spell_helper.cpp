@@ -35,6 +35,31 @@ bool SpellHelper::cast_spell(const Spell &spell) {
   return true;
 }
 
+Spell SpellHelper::get_fading_buff(const std::vector<Spell> &buffs) {
+
+  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
+
+  std::unordered_map<int, Zeal::GameStructures::_GAMEBUFFINFO *> active_buffs;
+  for (int i = 0; i < char_info->GetMaxBuffs(); i++) {
+    auto *buff_info = char_info->GetBuff(i);
+    if (buff_info) {
+      active_buffs[buff_info->SpellId] = buff_info;
+    }
+  }
+
+  for (const auto &buff : buffs) {
+    auto it = active_buffs.find(buff.spell_id);
+    if (it != active_buffs.end()) {
+      auto duration = it->second->Ticks * 6;  // Convert ticks to seconds
+      if (duration <= kFadingBuffThreshold) {
+        return buff;
+      }
+    }
+  }
+
+  return Spell{-1, -1, -1};
+}
+
 void SpellHelper::cast(const Spell &spell) {
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
