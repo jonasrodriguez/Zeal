@@ -26,6 +26,8 @@ void AutoEnchanter::enable() {
     return;
   }
 
+  my_pet = Zeal::Game::get_pet();
+
   auto_enchanter = true;
   Zeal::Game::print_chat("AutoEnchanter habilitado.");
 }
@@ -58,17 +60,10 @@ void AutoEnchanter::tick() {
   if (now - last_interval_time < kCheckIntervalMs) return;
   last_interval_time = now;
 
-  // Check if we lost our pet, if we did, stun it !
-  // If it's on idle or assist state, check if we have a pet, if we don't, stun old pet !
-  if (state == Idle || state == Assist) {
-    if (pet_break()) {
-      return;
-    }
-  }
-
-  if (state == Idle) return;
-
   switch (state) {
+    case Idle:
+      tick_idle();
+      break;
     case Assist:
       tick_assist();
       break;
@@ -78,45 +73,24 @@ void AutoEnchanter::tick() {
     case Charm:
       tick_charm();
       break;
-    case Idle:
+    case Break:
+      tick_break();
+      break;
     default:
       return;
   }
 }
 
-bool AutoEnchanter::pet_break() {
-  Zeal::GameStructures::Entity *pet = Zeal::Game::get_pet();
-
-  if (!pet) {
-    
-    // If we don't have a previous pet, just return
-    if (!my_pet) {
-      return false;
-    }
-
-    // If we have a previous pet, asign it as current pet and stun or recharm
-    my_pet = pet;
-
-    // If break pet is close, stun otherwise, try to recharm
-    Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-    Vec3 player_position = self->Position;
-    Vec3 pet_position = my_pet->Position;
-
-    float distance = player_position.Dist2D(pet_position);
-    Zeal::Game::print_chat("AutoEnchanter: Distance to pet is %.2f", distance);
-
-    if (distance <= STUN_RANGE) {
-      Zeal::Game::print_chat("AutoEnchanter: Stun pet %s", my_pet->Name);
-      state = Stun;
-    } else {
-      Zeal::Game::print_chat("AutoEnchanter: Pet %s is too far away, try to recharm", my_pet->Name);
-      state = Charm;
-    }
-
-    return true;
+void AutoEnchanter::tick_idle() {
+  
+  // Check charm break !
+  if (my_pet && !Zeal::Game::get_pet()) {
+    state = Break;
+    return;
   }
 
-  return false;
+  // Check if we have a pet
+  my_pet = Zeal::Game::get_pet();
 }
 
 void AutoEnchanter::tick_assist() {
@@ -132,11 +106,31 @@ void AutoEnchanter::tick_assist() {
   Zeal::Game::pet_command(Zeal::GameEnums::PetCommand::Attack, target->SpawnId);
 }
 
+void AutoEnchanter::tick_break() {
+  if (!my_pet) return;
+  Vec3 pet_position = my_pet->Position;
+  Zeal::Game::set_target(my_pet);
+
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  if (!self) return;
+  Vec3 player_position = self->Position;
+
+  float distance = player_position.Dist2D(pet_position);
+  // If pet is close, stun it, otherwise try to recharm
+  if (distance <= STUN_RANGE) {
+    Zeal::Game::print_chat("AutoEnchanter: Stun pet %s", my_pet->Name);
+    state = Stun;
+  } else {
+    Zeal::Game::print_chat("AutoEnchanter: Pet %s is too far away, try to recharm", my_pet->Name);
+    state = Charm;
+  }
+}
+
 void AutoEnchanter::tick_stun() {
 
   if (spell_helper.cast_spell(stun)) {
     Zeal::Game::print_chat("AutoRanger: Stunned!");
-    state = Idle;
+    state = Charm;
   }
 }
 

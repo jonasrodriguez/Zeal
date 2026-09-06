@@ -19,12 +19,12 @@ class AutoEnchanter {
   void disable();
 
  private:
-  static constexpr int STUN_RANGE = 55;
+  static constexpr int STUN_RANGE = 80;
 
   ChatHelper chat_helper;
   AutoFace auto_face;
 
-  enum EncState { Idle, Assist, Stun, Charm, AboutToSit };
+  enum EncState { Idle, Assist, Stun, Charm, Break };
 
   void search_spells();
   void cast_spell(const Spell &spell);
@@ -32,11 +32,11 @@ class AutoEnchanter {
   bool handle_chat_channel(const char *message, int color_index);
 
   void tick();
+  void tick_idle();
   void tick_assist();
+  void tick_break();
   void tick_stun();
   void tick_charm();
-
-  bool pet_break();
 
   bool auto_enchanter = false;
   EncState state = Idle;
