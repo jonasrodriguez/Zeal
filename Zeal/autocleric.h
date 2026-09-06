@@ -27,9 +27,13 @@ class AutoCleric {
 
   enum ClericState { Idle, Stun, Heal };
 
+  enum class HealType { Fast, Complete };
+  HealType heal_type = HealType::Fast;
+
   Spell stun{-1, 125};		// Stun spell (Stuns for 8 seconds) 3s cast time
   Spell heal{-1, 2182};     // Ethereal Light spell (Heals for 1000 HP) 4.75s cast time
-  SpellSet spellset{&stun, &heal};
+  Spell complete{-1, 13};   // Complete Heal
+  SpellSet spellset{&stun, &heal, &complete};
 
   ClericState state = Idle;
 

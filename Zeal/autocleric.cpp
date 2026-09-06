@@ -19,11 +19,12 @@ void AutoCleric::enable(std::string name) {
     auto_cleric = false;
     return;
   }
+
   pet = EntityHelper::get_pet_by_owner(target);
 
   spell_helper.search_spells(spellset);
   if (spell_helper.missing_spell(spellset)) {
-    Zeal::Game::print_chat("AutoCleric: Missing \"Sound of Force\" or \"Ethereal Light\".");
+    Zeal::Game::print_chat("AutoCleric: Missing \"Sound of Force\", \"Ethereal Light\" or \"Complete Heal\".");
     auto_cleric = false;
     return;
   } 
@@ -74,9 +75,11 @@ void AutoCleric::tick_idle() {
 
   // Check target health
   if (target) {
+      
     // If below 60% health, heal target
     if (target->HpCurrent < target->HpMax * 0.6) {
-      Zeal::Game::print_chat("AutoCleric: Target \"%s\" below 60%% health, trying to heal!", target->Name);
+      heal_type = target->CharInfo->Class == Zeal::GameEnums::ClassTypes::Enchanter ? HealType::Fast : HealType::Complete;
+      Zeal::Game::print_chat("AutoCleric: Target \"%s\" below 60%% health, trying to %s!", target->Name, heal_type == HealType::Fast ? "fast heal" : "complete heal");
       Zeal::Game::set_target(target);
       state = Heal;
       return;
@@ -96,7 +99,7 @@ void AutoCleric::tick_stun() {
 }
 
 void AutoCleric::tick_heal() {
-  if (spell_helper.cast_spell(heal)) {
+  if (spell_helper.cast_spell(heal_type == HealType::Fast ? heal : complete)) {
     state = Idle;
   }
 }
