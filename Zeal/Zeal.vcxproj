@@ -135,6 +135,7 @@
     <ClInclude Include="chat_helper.h" />
     <ClInclude Include="chetotarget.h" />
     <ClInclude Include="come_close.h" />
+    <ClInclude Include="entity_helper.h" />
     <ClInclude Include="Iautomelee.h" />
     <ClInclude Include="position_helper.h" />
     <ClInclude Include="operator_overloads.h" />
@@ -250,6 +251,7 @@
     <ClCompile Include="crash_handler.cpp" />
     <ClCompile Include="default_spritefont.cpp" />
     <ClCompile Include="directx.cpp" />
+    <ClCompile Include="entity_helper.cpp" />
     <ClCompile Include="entity_manager.cpp" />
     <ClCompile Include="equip_item.cpp" />
     <ClCompile Include="floating_damage.cpp" />

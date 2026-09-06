@@ -399,6 +399,9 @@
     <ClInclude Include="spell_helper.h">
       <Filter>Header Files\helpers</Filter>
     </ClInclude>
+    <ClInclude Include="entity_helper.h">
+      <Filter>Header Files\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -690,6 +693,9 @@
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
     <ClCompile Include="spell_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_helper.cpp">
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
   </ItemGroup>

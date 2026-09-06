@@ -8,31 +8,22 @@
 #include "string_util.h"
 #include "zeal.h"
 
+#include "entity_helper.h"
+
 void AutoCleric::enable(std::string name) { 
 
-  target_name = name;
-
   // Get target entity, try to get target's pet if available
-  check_target();
+  target = EntityHelper::get_player_by_name(name);
   if (!target) {
-    Zeal::Game::print_chat("AutoCleric: Target \"%s\" not found.", target_name.c_str());
+    Zeal::Game::print_chat("AutoCleric: Target \"%s\" not found.", name.c_str());
     auto_cleric = false;
     return;
   }
-
-  int pet_id = target->ActorInfo->PetID;
-  if (pet_id) {
-    pet = Zeal::Game::get_entity_by_id(pet_id);
-  }
-  if (!pet) {
-    Zeal::Game::print_chat("AutoCleric: Target \"%s\" has no pet.", target_name.c_str());
-    auto_cleric = false;
-    return;
-  }
+  pet = EntityHelper::get_pet_by_owner(target);
 
   spell_helper.search_spells(spellset);
   if (spell_helper.missing_spell(spellset)) {
-    Zeal::Game::print_chat("AutoCleric: Missing \"Stun\" or \"Complete Heal\".");
+    Zeal::Game::print_chat("AutoCleric: Missing \"Stun\" or \"Ethereal Light\".");
     auto_cleric = false;
     return;
   } 
@@ -42,7 +33,6 @@ void AutoCleric::enable(std::string name) {
 }
 
 void AutoCleric::disable() { 
-  target_name = std::string();
   target = nullptr;
   pet = nullptr;
   spell_helper.reset_spells(spellset);
@@ -51,68 +41,64 @@ void AutoCleric::disable() {
 
 void AutoCleric::tick() {
 
-  if (!auto_cleric) return;
+  if (!auto_cleric || !target) return;
 
    auto now = GetTickCount64();
-  // Add a 500 ms delay, no need to check every tick
   if (now - last_interval_time < kCheckIntervalMs) return;
   last_interval_time = now;
 
-  // Check it target is still valid
-  if (!target) {
-    check_target();
-    if (!target) {
-      Zeal::Game::print_chat("AutoCleric: Target \"%s\" not found.", target_name.c_str());
-      disable();
+    switch (state) {
+    case Stun:
+      tick_stun();
+      break;
+    case Heal:
+      tick_heal();
+      break;
+    case Idle:
+      tick_idle();
+      break;
+    default:
       return;
-    }    
   }
+}
 
-  // Does target still have a pet ?
-  if (check_pet()) {
+void AutoCleric::tick_idle() {
+
+  // Check if pet break
+  if (pet && pet->PetOwnerSpawnId == 0) {
+    Zeal::Game::print_chat("AutoCleric: Pet break detected, trying to stun!");
+    Zeal::Game::set_target(pet);
+    state = Stun;
     return;
   }
 
-  Zeal::Game::print_chat("AutoCleric: Target \"%s\" has no pet. Charm Break ??", target_name.c_str());
-  // Cast Stun on pet, if pet available
-  if (pet) {
-    Zeal::Game::set_target(pet);
-    spell_helper.cast_spell(stun);
-  }
-
-  // Disable autocleric for 10 seconds to avoid spamming
-  auto_cleric = false;
-}
-
-void AutoCleric::check_target() {
-
-  Zeal::GameStructures::Entity *current_ent = Zeal::Game::get_entity_list();
-  while (current_ent != nullptr) {
-    if (current_ent->Type == Zeal::GameEnums::Player &&
-        _strnicmp(current_ent->Name, target_name.c_str(), target_name.length()) == 0) {
-      target = current_ent;
-      break;
+  // Check target health
+  if (target) {
+    // If below 60% health, heal target
+    if (target->HpCurrent < target->HpMax * 0.6) {
+      Zeal::Game::print_chat("AutoCleric: Target \"%s\" below 60%% health, trying to heal!", target->Name);
+      Zeal::Game::set_target(target);
+      state = Heal;
+      return;
     }
-    current_ent = current_ent->Next;
+  }
+
+  // Check if target has a new pet
+  if (target) {
+    pet = EntityHelper::get_pet_by_owner(target);
   }
 }
 
-bool AutoCleric::check_pet() {
-
-  if (!pet) return false;
-
-  if (pet->PetOwnerSpawnId == 0) {
-    return false;
+void AutoCleric::tick_stun() {  
+  if (spell_helper.cast_spell(stun)) {
+    state = Idle;
   }
+}
 
-  int pet_id = target->ActorInfo->PetID;
-  if (pet_id) {
-    pet = Zeal::Game::get_entity_by_id(pet_id);
-    return true;
+void AutoCleric::tick_heal() {
+  if (spell_helper.cast_spell(heal)) {
+    state = Idle;
   }
-
-  return false;
-
 }
 
 AutoCleric::AutoCleric(ZealService *zeal) {
@@ -143,5 +129,3 @@ AutoCleric::AutoCleric(ZealService *zeal) {
         return true;
       });
 }
-
-AutoCleric::~AutoCleric() {}

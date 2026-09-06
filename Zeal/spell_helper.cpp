@@ -70,6 +70,9 @@ void SpellHelper::cast(const Spell &spell) {
   if (fizzle > gameTime) {
     return;
   }
+  if (self->ActorInfo->RecastTimeout[spell.gem] > gameTime) {
+    return;
+  }
 
   if (char_info->cast(spell.gem, char_info->MemorizedSpell[spell.gem], 0, -1)) {
     casting_spell_id = char_info->MemorizedSpell[spell.gem];
