@@ -27,7 +27,7 @@ class AutoCleric {
 
   enum ClericState { Idle, Stun, Heal };
 
-  Spell stun{-1, 216};		// Stun spell (Stuns for 4 seconds) 1.5 cast time
+  Spell stun{-1, 125};		// Stun spell (Stuns for 8 seconds) 3s cast time
   Spell heal{-1, 2182};     // Ethereal Light spell (Heals for 1000 HP) 4.75s cast time
   SpellSet spellset{&stun, &heal};
 

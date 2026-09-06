@@ -23,7 +23,7 @@ void AutoCleric::enable(std::string name) {
 
   spell_helper.search_spells(spellset);
   if (spell_helper.missing_spell(spellset)) {
-    Zeal::Game::print_chat("AutoCleric: Missing \"Stun\" or \"Ethereal Light\".");
+    Zeal::Game::print_chat("AutoCleric: Missing \"Sound of Force\" or \"Ethereal Light\".");
     auto_cleric = false;
     return;
   } 
