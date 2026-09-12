@@ -49,29 +49,35 @@
     <Filter Include="UI Files">
       <UniqueIdentifier>{5ac2a0c8-3a18-4026-bc6e-1cf0e43c27cf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\hooks\raid">
-      <UniqueIdentifier>{6274d0b3-4e38-43f0-b3fb-aad4e44fdc15}</UniqueIdentifier>
+    <Filter Include="Header Files\juank">
+      <UniqueIdentifier>{33a7f8ec-cdef-4a56-83ff-ad280b5a15e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\hooks\classes">
-      <UniqueIdentifier>{2a31c9fe-1d63-4f8b-af49-75274fa07c1d}</UniqueIdentifier>
+    <Filter Include="Source Files\juank">
+      <UniqueIdentifier>{53ff0474-cd4e-4a68-bfef-961c4c3e4b84}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\hooks\tradeskills">
-      <UniqueIdentifier>{12e0eb33-40cd-4996-a6e9-b986dd0eba74}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\hooks\helpers">
-      <UniqueIdentifier>{d466f044-0219-45ef-bd38-180d102c14e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\hooks\classes">
+    <Filter Include="Source Files\juank\classes">
       <UniqueIdentifier>{68fedf22-2fc3-4921-9403-b7a825bd6648}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\hooks\helpers">
+    <Filter Include="Source Files\juank\helpers">
       <UniqueIdentifier>{728a65ae-5366-413e-b407-a7853c938700}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\hooks\raid">
+    <Filter Include="Source Files\juank\raid">
       <UniqueIdentifier>{1ee1e69f-2826-48ed-97c8-20586c8847df}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\hooks\tradeskills">
+    <Filter Include="Source Files\juank\tradeskills">
       <UniqueIdentifier>{05f4c2e7-1dd0-4037-bd6a-47f2d11d0084}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\juank\classes">
+      <UniqueIdentifier>{2a31c9fe-1d63-4f8b-af49-75274fa07c1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\juank\helpers">
+      <UniqueIdentifier>{d466f044-0219-45ef-bd38-180d102c14e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\juank\raid">
+      <UniqueIdentifier>{6274d0b3-4e38-43f0-b3fb-aad4e44fdc15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\juank\tradeskills">
+      <UniqueIdentifier>{12e0eb33-40cd-4996-a6e9-b986dd0eba74}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -346,49 +352,49 @@
       <Filter>Header Files\helpers</Filter>
     </ClInclude>
     <ClInclude Include="autoranger.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="automage.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="autobst.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="autoenchanter.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="autocleric.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="automelee.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="automonk.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="autorogue.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="autowarrior.h">
-      <Filter>Header Files\hooks\classes</Filter>
+      <Filter>Header Files\juank\classes</Filter>
     </ClInclude>
     <ClInclude Include="autochain.h">
-      <Filter>Header Files\hooks\raid</Filter>
+      <Filter>Header Files\juank\raid</Filter>
     </ClInclude>
     <ClInclude Include="autocombine.h">
-      <Filter>Header Files\hooks\tradeskills</Filter>
+      <Filter>Header Files\juank\tradeskills</Filter>
     </ClInclude>
     <ClInclude Include="come_close.h">
-      <Filter>Header Files\hooks\helpers</Filter>
+      <Filter>Header Files\juank\helpers</Filter>
     </ClInclude>
     <ClInclude Include="chetotarget.h">
-      <Filter>Header Files\hooks\helpers</Filter>
+      <Filter>Header Files\juank\helpers</Filter>
     </ClInclude>
     <ClInclude Include="chainlead.h">
-      <Filter>Header Files\hooks\raid</Filter>
+      <Filter>Header Files\juank\raid</Filter>
     </ClInclude>
     <ClInclude Include="autoability.h">
-      <Filter>Header Files\hooks\helpers</Filter>
+      <Filter>Header Files\juank\helpers</Filter>
     </ClInclude>
     <ClInclude Include="chat_helper.h">
       <Filter>Header Files\helpers</Filter>
@@ -404,6 +410,9 @@
     </ClInclude>
     <ClInclude Include="entity_helper.h">
       <Filter>Header Files\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="assist_target.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -645,55 +654,55 @@
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
     <ClCompile Include="autoranger.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="automage.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="autobst.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="autoenchanter.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="autocleric.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="automelee.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="automonk.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="autorogue.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="autowarrior.cpp">
-      <Filter>Source Files\hooks\classes</Filter>
+      <Filter>Source Files\juank\classes</Filter>
     </ClCompile>
     <ClCompile Include="autocombine.cpp">
-      <Filter>Source Files\hooks\tradeskills</Filter>
+      <Filter>Source Files\juank\tradeskills</Filter>
     </ClCompile>
     <ClCompile Include="autochain.cpp">
-      <Filter>Source Files\hooks\raid</Filter>
+      <Filter>Source Files\juank\raid</Filter>
     </ClCompile>
     <ClCompile Include="autoability.cpp">
-      <Filter>Source Files\hooks\helpers</Filter>
+      <Filter>Source Files\juank\helpers</Filter>
     </ClCompile>
     <ClCompile Include="chainlead.cpp">
-      <Filter>Source Files\hooks\raid</Filter>
+      <Filter>Source Files\juank\raid</Filter>
     </ClCompile>
     <ClCompile Include="chetotarget.cpp">
-      <Filter>Source Files\hooks\helpers</Filter>
+      <Filter>Source Files\juank\helpers</Filter>
     </ClCompile>
     <ClCompile Include="come_close.cpp">
-      <Filter>Source Files\hooks\helpers</Filter>
+      <Filter>Source Files\juank\helpers</Filter>
     </ClCompile>
     <ClCompile Include="chat_helper.cpp">
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
     <ClCompile Include="sentry.cpp">
-      <Filter>Source Files\hooks\helpers</Filter>
+      <Filter>Source Files\juank\helpers</Filter>
     </ClCompile>
     <ClCompile Include="auto_face.cpp">
       <Filter>Source Files\helpers</Filter>
