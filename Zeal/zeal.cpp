@@ -10,18 +10,13 @@
 
 #include "alarm.h"
 #include "assist.h"
-#include "autoability.h"
-#include "autocleric.h"
-#include "autochain.h"
 #include "assist_target.h"
 #include "autofire.h"
-#include "automelee.h"
 #include "bandolier.h"
 #include "binds.h"
 #include "buff_timers.h"
 #include "callbacks.h"
 #include "camera_mods.h"
-#include "chainlead.h"
 #include "character_select.h"
 #include "chat.h"
 #include "chatfilter.h"
@@ -69,11 +64,22 @@
 #include "utils.h"
 #include "zone_map.h"
 
-#include "chetotarget.h"
+// Classes
 #include "automage.h"
 #include "autoranger.h"
 #include "autoenchanter.h"
+#include "automelee.h"
+#include "autocleric.h"
+
+// Helpers
+#include "autoability.h"
+#include "chetotarget.h"
 #include "sentry.h"
+
+// Raid
+#include "autochain.h"
+#include "chainlead.h"
+
 
 extern HMODULE this_module;
 
