@@ -22,20 +22,72 @@ void SpellHelper::search_spells(SpellSet &spellset) {
 }
 
 bool SpellHelper::cast_spell(const Spell &spell) {
-  if (casting_spell_id == kInvalidSpellId) {
-    cast(spell);
-    return false;
-  }
 
-  if (Zeal::Game::GetSpellCastingTime() != -1) {
-    return false;
+  switch (state) {
+    case Idle:
+      return about_to_cast(spell);
+    case CheckCasting:
+      return check_casting(spell);
+    case Casting:
+      return casting();
   }
-
-  casting_spell_id = kInvalidSpellId;
-  return true;
 }
 
-Spell SpellHelper::get_fading_buff(const std::vector<Spell> &buffs) {
+bool SpellHelper::about_to_cast(const Spell &spell) {
+  Zeal::Game::print_chat("About to cast !");
+  if (spell.gem == -1) {
+    Zeal::Game::print_chat("Spell not found in spell gems.");
+    return true;
+  }
+
+  cast(spell);
+  casting_started_timestamp = GetTickCount64();
+  retry_count++;
+  return false;
+}
+
+bool SpellHelper::check_casting(const Spell &spell) {
+  if (Zeal::Game::GetSpellCastingTime() != -1) {
+    casting_visible_timestamp = GetTickCount64();
+    if ((casting_visible_timestamp - casting_started_timestamp) > 500) {
+      Zeal::Game::print_chat("Check casting -> All good, reset retries!");
+
+      retry_count = 0;
+      state = Casting;
+    }
+  } else {
+    Zeal::Game::print_chat("Check casting -> Error casting, retry !");
+    retry_count++;
+    state = Idle;
+    if (retry_count > max_retries) {
+      Zeal::Game::print_chat("Cancelando casteo, demasiadas retries (Estas demasiado lejos?)");
+      casting_spell_id = kInvalidSpellId;
+      retry_count = 0;
+      state = Idle;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool SpellHelper::casting() {
+  if (Zeal::Game::GetSpellCastingTime() != -1) {
+    Zeal::Game::print_chat("Casting still...");
+    return false; // Nothing to do, still casting
+  } else {         
+    // Finish casting, clear state and reset retry count
+    Zeal::Game::print_chat("Finished casting !");
+    casting_spell_id = kInvalidSpellId;
+    retry_count = 0;
+    state = Idle;
+
+    return true;
+  }
+}
+
+
+Spell SpellHelper::get_missing_or_fading_buff(const std::vector<Spell> &buffs) {
 
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
 
@@ -47,6 +99,7 @@ Spell SpellHelper::get_fading_buff(const std::vector<Spell> &buffs) {
     }
   }
 
+  // Check if buff is fading
   for (const auto &buff : buffs) {
     auto it = active_buffs.find(buff.spell_id);
     if (it != active_buffs.end()) {
@@ -54,6 +107,9 @@ Spell SpellHelper::get_fading_buff(const std::vector<Spell> &buffs) {
       if (duration <= kFadingBuffThreshold) {
         return buff;
       }
+    } else {
+      // Buff is missing, recast
+      return buff;
     }
   }
 

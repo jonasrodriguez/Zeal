@@ -35,7 +35,7 @@ void AutoRanger::enable(bool castSnare, bool castBuff) {
     }
   }
 
-  Zeal::Game::print_chat(std::format("AutoRanger habilitado {} {}", castSnare ? "con snare" : "", castBuff ? "con buffs" : ""));
+  Zeal::Game::print_chat("AutoRanger habilitado: Snare: %s, Buffs: %s", castSnare ? "ON" : "OFF", castBuff ? "ON" : "OFF");
 }
 
 void AutoRanger::disable() {
@@ -90,6 +90,7 @@ void AutoRanger::tick() {
 
 void AutoRanger::tick_face() { 
   if (!Zeal::Game::get_target()) {
+    state = Fire;
     return;
   }
   auto_face.face_target();
@@ -119,7 +120,7 @@ void AutoRanger::tick_buff() {
 }
 
 void AutoRanger::check_buffs() {
-  auto spell = SpellHelper::get_fading_buff({eagle, precision});
+  auto spell = SpellHelper::get_missing_or_fading_buff({eagle, precision});
   if (spell.spell_id != -1) {
     Zeal::Game::print_chat("AutoRanger: Rebuffing...");
     Zeal::Game::set_target(Zeal::Game::get_self());
@@ -159,7 +160,7 @@ AutoRanger::AutoRanger(ZealService *zeal) {
                     castSnare = true;
                 }
                 if (Zeal::String::compare_insensitive(args[i], "buffs")) {
-                  castBuff = true;
+                    castBuff = true;
                 }
             }
         }
