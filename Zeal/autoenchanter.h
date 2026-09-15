@@ -15,7 +15,7 @@ class AutoEnchanter {
   AutoEnchanter(class ZealService *zeal);
   ~AutoEnchanter() {}
 
-  void enable();
+  void enable(bool assist, bool spam_sos);
   void disable();
 
  private:
@@ -26,9 +26,6 @@ class AutoEnchanter {
 
   enum EncState { Idle, Assist, Stun, Charm, Break };
 
-  void search_spells();
-  void cast_spell(const Spell &spell);
-
   bool handle_chat_channel(const char *message, int color_index);
 
   void tick();
@@ -38,6 +35,8 @@ class AutoEnchanter {
   void tick_stun();
   void tick_charm();
 
+  bool assist = false;
+  bool spam_sos = false;
   bool auto_enchanter = false;
   EncState state = Idle;
 
@@ -51,5 +50,6 @@ class AutoEnchanter {
   WORD casting_spell_id = kInvalidSpellId;
 
   ULONGLONG last_interval_time = 0;
+  ULONGLONG last_sos_cast = 0;
   static constexpr DWORD kCheckIntervalMs = 200;
 };

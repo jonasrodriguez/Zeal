@@ -18,7 +18,10 @@
 
 void ForwardCommand(std::string cmd);
 
-void AutoEnchanter::enable() {
+void AutoEnchanter::enable(bool assist, bool spam_sos) {
+  this->assist = assist;
+  this->spam_sos = spam_sos;
+
   spell_helper.search_spells(spellset);
   if (spell_helper.missing_spell(spellset)) {
     Zeal::Game::print_chat("AutoEnchanter: Missing \"Boltran\" o \"Color Slant\".");
@@ -26,20 +29,22 @@ void AutoEnchanter::enable() {
     return;
   }
 
+  state = Idle;
   my_pet = Zeal::Game::get_pet();
 
   auto_enchanter = true;
-  Zeal::Game::print_chat("AutoEnchanter habilitado.");
+  Zeal::Game::print_chat("AutoEnchanter habilitado: Assist: %s, Spam SOS: %s", assist ? "ON" : "OFF", spam_sos ? "ON" : "OFF");
 }
 
 void AutoEnchanter::disable() {
   auto_enchanter = false;
   my_pet = nullptr;
   spell_helper.reset_spells(spellset);
+  state = Idle;
 }
 
 bool AutoEnchanter::handle_chat_channel(const char *message, int color_index) {
-  if (!auto_enchanter || !message) return false;
+  if (!auto_enchanter || !message || state != Idle) return false;
 
   std::string target = chat_helper.assist_listener(message, color_index);
   if (!target.empty()) {
@@ -91,6 +96,16 @@ void AutoEnchanter::tick_idle() {
 
   // Check if we have a pet
   my_pet = Zeal::Game::get_pet();
+
+  // If we have a pet, and spam sos is enabled.. cast sos (10 seconds cooldown)
+  if (my_pet && spam_sos) {
+    auto now = GetTickCount64();
+    if (now - last_sos_cast >= 10000) {
+      Zeal::Game::set_target(my_pet);
+      last_sos_cast = now;
+      ForwardCommand("/use Staff of the Serpent");
+    }
+  }
 }
 
 void AutoEnchanter::tick_assist() {
@@ -100,19 +115,23 @@ void AutoEnchanter::tick_assist() {
   }
 
   Zeal::GameStructures::Entity *target = Zeal::Game::get_target();
-  if (!target) {
-    return;
+  if (target) {
+    Zeal::Game::pet_command(Zeal::GameEnums::PetCommand::Attack, target->SpawnId);
   }
-  Zeal::Game::pet_command(Zeal::GameEnums::PetCommand::Attack, target->SpawnId);
+
+  state = Idle;
 }
 
 void AutoEnchanter::tick_break() {
-  if (!my_pet) return;
   Vec3 pet_position = my_pet->Position;
   Zeal::Game::set_target(my_pet);
 
   Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-  if (!self) return;
+  if (!self) {
+    state = Idle;
+    return;
+  }
+
   Vec3 player_position = self->Position;
 
   float distance = player_position.Dist2D(pet_position);
@@ -157,15 +176,27 @@ AutoEnchanter::AutoEnchanter(ZealService *zeal) {
     [this](std::vector<std::string> &args) {
         int args_size = args.size();
 
+        bool assist = false;
+        bool spamSos = false;
+
         if (args_size > 1) {
             if (Zeal::String::compare_insensitive(args[1], "off")) {
                 Zeal::Game::print_chat("AutoEnchanter disabled.");
                 disable();
                 return true;
             }
+
+            for (int i = 1; i < args_size; ++i) {
+                if (Zeal::String::compare_insensitive(args[i], "assist")) {
+                    assist = true;
+                }
+                if (Zeal::String::compare_insensitive(args[i], "sos")) {
+                    spamSos = true;
+                }
+            }
         }
 
-        enable();
+        enable(assist, spamSos);
         return true;
     });
 }
