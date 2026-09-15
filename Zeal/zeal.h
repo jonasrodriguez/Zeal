@@ -104,6 +104,7 @@ class ZealService {
   // Helpers
   std::unique_ptr<class AutoAbility> auto_ability = nullptr;
   std::unique_ptr<class ChetoTarget> cheto_target = nullptr;
+  std::unique_ptr<class ChetoFind> cheto_find = nullptr;
   std::unique_ptr<class Sentry> sentry = nullptr;
 
   // Raid

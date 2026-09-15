@@ -74,6 +74,7 @@
 // Helpers
 #include "autoability.h"
 #include "chetotarget.h"
+#include "chetofind.h"
 #include "sentry.h"
 
 // Raid
@@ -203,6 +204,7 @@ ZealService::ZealService() {
   // Helper
   auto_ability = MakeCheckedUnique(AutoAbility);
   cheto_target = MakeCheckedUnique(ChetoTarget);
+  cheto_find = MakeCheckedUnique(ChetoFind);
   sentry = MakeCheckedUnique(Sentry);
 
   // Raid

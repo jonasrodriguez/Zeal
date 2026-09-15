@@ -135,6 +135,7 @@
     <ClInclude Include="bitmap_font.h" />
     <ClInclude Include="chainlead.h" />
     <ClInclude Include="chat_helper.h" />
+    <ClInclude Include="chetofind.h" />
     <ClInclude Include="chetotarget.h" />
     <ClInclude Include="come_close.h" />
     <ClInclude Include="entity_helper.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="chat_helper.cpp" />
     <ClCompile Include="character_select.cpp" />
     <ClCompile Include="chatfilter.cpp" />
+    <ClCompile Include="chetofind.cpp" />
     <ClCompile Include="chetotarget.cpp" />
     <ClCompile Include="come_close.cpp" />
     <ClCompile Include="crash_handler.cpp" />
