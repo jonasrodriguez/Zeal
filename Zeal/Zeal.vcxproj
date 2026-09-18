@@ -136,6 +136,7 @@
     <ClInclude Include="chainlead.h" />
     <ClInclude Include="chat_helper.h" />
     <ClInclude Include="chetofind.h" />
+    <ClInclude Include="chetofind_data.h" />
     <ClInclude Include="chetotarget.h" />
     <ClInclude Include="come_close.h" />
     <ClInclude Include="entity_helper.h" />

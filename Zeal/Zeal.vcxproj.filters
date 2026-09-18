@@ -420,6 +420,12 @@
     <ClInclude Include="chetofind.h">
       <Filter>Header Files\juank\helpers</Filter>
     </ClInclude>
+    <ClInclude Include="assist_target.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chetofind_data.h">
+      <Filter>Header Files\juank\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

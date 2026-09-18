@@ -46,6 +46,7 @@ void AutoRanger::disable() {
 
 void AutoRanger::handle_chat(const char *message, int color_index) {
   if (!auto_ranger || !message) return;
+  if (state == Buff) return;
 
   auto target = chat_helper.assist_listener(message, color_index);
   if (!target.empty()) {
@@ -65,7 +66,7 @@ void AutoRanger::tick() {
   last_interval_time = now;
 
   // Check buffs fading if idle
-  if (state == Idle) {
+  if (state != Buff) {
     check_buffs();
   }
 
@@ -111,6 +112,27 @@ void AutoRanger::tick_snare() {
 void AutoRanger::tick_auto_fire() {
   ZealService::get_instance()->autofire->SetAutoFire(true, true);
   state = Idle;
+}
+
+void AutoRanger::tick_attack() { 
+
+  auto target = Zeal::Game::get_target();
+  if (!target) {
+    state = Idle;
+    return;
+  }
+
+  Vec3 targer_position = target->Position;
+  Vec3 player_position = Zeal::Game::get_self()->Position;
+
+  float distance = player_position.Dist2D(targer_position);
+  if (distance <= 30) {
+    Zeal::Game::print_chat("AutoRager: Target cerca, autoattack on");
+    Zeal::Game::do_autoattack(true);
+  } else {
+    Zeal::Game::print_chat("AutoRager: Target lejos, autoattack off");
+    Zeal::Game::do_autoattack(false);
+  }
 }
 
 void AutoRanger::tick_buff() {

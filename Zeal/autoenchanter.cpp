@@ -44,7 +44,7 @@ void AutoEnchanter::disable() {
 }
 
 bool AutoEnchanter::handle_chat_channel(const char *message, int color_index) {
-  if (!auto_enchanter || !message || state != Idle) return false;
+  if (!auto_enchanter || !assist  || !message || state != Idle) return false;
 
   std::string target = chat_helper.assist_listener(message, color_index);
   if (!target.empty()) {

@@ -21,13 +21,14 @@ class AutoRanger {
   ChatHelper chat_helper;
   AutoFace auto_face;
 
-  enum RangerState { Idle, Face, Fire, Snare, Buff };
+  enum RangerState { Idle, Face, Fire, Attack, Snare, Buff };
 
   void tick();
   void tick_face();
   void tick_snare();
   void tick_auto_fire();
   void tick_buff();
+  void tick_attack();
 
   void check_buffs();
 

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "callbacks.h"
+#include "chetofind_data.h"
 #include "commands.h"
 #include "entity_manager.h"
 #include "game_functions.h"
@@ -14,10 +15,7 @@ static const D3DCOLOR kAlertColor = D3DCOLOR_XRGB(255, 50, 50);
 
 const std::unordered_map<std::string, FindTarget> &ChetoFind::GetKnownTargets() {
   static const std::unordered_map<std::string, FindTarget> targets = {
-      {"quillmane",
-       {"Quillmane",
-        {"a_lion", "a_lioness", "an_escaped_Splitpaw_gnoll", "an_elephant", "a_mist_wolf", "a_shadow_wolf",
-         "centaur_sheltie", "aviak_egret", "centaur_charger", "centaur_foal", "aviak_harrier", "a_cyclops"}}},
+      {"quillmane", MakeQuillmaneTarget()},
   };
   return targets;
 }
@@ -33,16 +31,18 @@ void ChetoFind::start(const std::string &name) {
   if (it == known.end()) {
     Zeal::Game::print_chat("ChetoFind: Unknown target '%s'. Known targets:", name.c_str());
     for (auto &entry : known) Zeal::Game::print_chat("  - %s", entry.second.target_name.c_str());
+    stop();
     return;
   }
 
-  stop();
   current_target = it->second;
   active = true;
   alert_fired = false;
 
   Zeal::Game::print_chat("ChetoFind: Tracking '%s'. Placeholders:", current_target.target_name.c_str());
   for (auto &ph : current_target.ph_names) Zeal::Game::print_chat("  - %s", ph.c_str());
+  Zeal::Game::print_chat("ChetoFind: %d spawn points, %d patrol paths loaded.", current_target.spawn_points.size(),
+                         current_target.paths.size());
 }
 
 void ChetoFind::stop() {
@@ -128,22 +128,21 @@ ChetoFind::ChetoFind(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { tick(); });
 
   zeal->commands_hook->Add("/chetofind", {"/cfind"}, "Tracks a rare spawn and its placeholders on the map.",
-        [this](std::vector<std::string> &args) {
-            if (args.size() >= 2) {
-                if (Zeal::String::compare_insensitive(args[1], "off")) {
-                    stop();
-                    return true;
-                }
-                start(args[1]);
-                return true;
-            }
-            Zeal::Game::print_chat("Usage: /chetofind <target> | off");
-            Zeal::Game::print_chat("Known targets:");
-            for (auto &entry : GetKnownTargets()) {
-              Zeal::Game::print_chat("  - %s", entry.second.target_name.c_str());
-            }
-            return true;
-        });
+                           [this](std::vector<std::string> &args) {
+                             if (args.size() >= 2) {
+                               if (Zeal::String::compare_insensitive(args[1], "off")) {
+                                 stop();
+                                 return true;
+                               }
+                               start(args[1]);
+                               return true;
+                             }
+                             Zeal::Game::print_chat("Usage: /chetofind <target> | off");
+                             Zeal::Game::print_chat("Known targets:");
+                             for (auto &entry : GetKnownTargets())
+                               Zeal::Game::print_chat("  - %s", entry.second.target_name.c_str());
+                             return true;
+                           });
 }
 
 ChetoFind::~ChetoFind() {}
