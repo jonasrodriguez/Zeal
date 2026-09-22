@@ -109,16 +109,39 @@ void ChetoFind::tick() {
       auto *ent = ph_entities[marker_index++];
       if (ent) {
         bool is_target = Zeal::String::contains(std::string(ent->Name), current_target.target_name);
-        std::string label =
-            is_target ? std::string("[") + current_target.target_name + "]" : std::string("PH:") + ent->Name;
-        ZealService::get_instance()->zone_map->add_marker(static_cast<int>(ent->Position.x),
-                                                          static_cast<int>(ent->Position.y), label.c_str(), false);
+        std::string label = is_target ? std::string("[") + current_target.target_name + "]" : std::string("PH:") + ent->Name;
+        ZealService::get_instance()->zone_map->add_marker(static_cast<int>(ent->Position.x), static_cast<int>(ent->Position.y), label.c_str(), false);
       }
       return;
     }
     is_updating = false;
   }
 }
+
+void ChetoFind::search_ph() {
+  auto *entity_manager = ZealService::get_instance()->entity_manager.get();
+  if (!entity_manager) return;
+
+  auto entities = entity_manager->GetAll();
+  bool target_found = false;
+
+  for (auto &entry : entities) {
+    if (!entry.second || entry.first.empty()) continue;
+    if (entry.second->Type != Zeal::GameEnums::NPC) continue;
+
+    if (Zeal::String::contains(entry.first, current_target.target_name)) {
+
+      // Posible PH 
+      auto entity = entry.second;
+
+      // Reject if its stationary
+      if (entity->MovementSpeed == 0.0f) continue;
+
+    }
+  }
+}
+
+
 
 ChetoFind::ChetoFind(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::CharacterSelect);

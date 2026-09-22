@@ -42,6 +42,8 @@ class ChetoFind {
   void start(const std::string &name);
   void stop();
 
+  void search_ph();
+
   static const std::unordered_map<std::string, FindTarget> &GetKnownTargets();
 
   bool active = false;
