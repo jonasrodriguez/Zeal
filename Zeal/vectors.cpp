@@ -23,18 +23,18 @@ float VectorHelper::dist2DPointToSegmentSq(const Vec2 &p, const Vec2 &a, const V
   return dx * dx + dy * dy;
 }
 
-bool VectorHelper::isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance) {
+bool VectorHelper::isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance, bool circular) {
   if (points.size() < 2) return false;
 
   Vec2 p = testPoint.toVec2();
   float maxDistSq = tolerance * tolerance;
-  size_t numPoints = points.size();
+  size_t numSegments = circular ? points.size() : points.size() - 1;
 
-  for (size_t i = 0; i < numPoints; ++i) {
-    auto point = points[i];
-    auto nextPoint = points[(i + 1) % numPoints];
-    Vec2 a = point.toVec2();
-    Vec2 b = nextPoint.toVec2();
+  for (size_t i = 0; i < numSegments; ++i) {
+    Vec3 index = points[i];
+    Vec3 nextIndex = points[(i + 1) % points.size()];
+    Vec2 a = index.toVec2();
+    Vec2 b = nextIndex.toVec2();
 
     if (dist2DPointToSegmentSq(p, a, b) <= maxDistSq) {
       return true;

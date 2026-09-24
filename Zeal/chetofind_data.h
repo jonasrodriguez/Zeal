@@ -1,6 +1,9 @@
 #pragma once
 
-#include "chetofind.h"
+#include "entity_helper.h"
+
+#include <string>
+#include <optional>
 
 // =============================================================================
 // Quillmane — South Karana (zone 14)
@@ -23,9 +26,24 @@
 //     WHERE zoneid = 14 AND gridid IN (1,2,3) ORDER BY gridid, number;
 // =============================================================================
 
+inline FindTarget MakeQuillmaneTarget();
+
+static const std::unordered_map<std::string, FindTarget> targets_data = {
+    {"quillmane", MakeQuillmaneTarget()},
+};
+
+inline std::optional<FindTarget> getTargetData(const std::string& target) {
+  auto it = targets_data.find(target);
+  if (it == targets_data.end()) {
+    return std::nullopt;
+  }
+  return it->second;
+}
+
 inline FindTarget MakeQuillmaneTarget() {
   FindTarget t;
   t.target_name = "Quillmane";
+  t.respawn_seconds = 17;
 
   // -- Placeholders (spawnentry for spawngroup 223791) --
   t.ph_names = {
@@ -189,3 +207,4 @@ inline FindTarget MakeQuillmaneTarget() {
 
   return t;
 }
+

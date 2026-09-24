@@ -335,5 +335,5 @@ struct Vec4 {
 class VectorHelper {
  public:
   static float dist2DPointToSegmentSq(const Vec2 &p, const Vec2 &a, const Vec2 &b);
-  static bool isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance);
+  static bool isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance, bool circular);
 };

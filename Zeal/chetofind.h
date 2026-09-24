@@ -1,34 +1,13 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <unordered_map>
 #include <vector>
 
 #include "game_structures.h"
 
-struct Waypoint {
-  float x, y, z;
-};
-
-struct SpawnPath {
-  int grid_id;
-  int grid_type;  // 0=Circular, 3=Patrol (see GridWanderType)
-  std::vector<Waypoint> waypoints;
-};
-
-struct SpawnPoint {
-  int spawn2_id;
-  float x, y, z;
-  int pathgrid;
-  int respawn_seconds;
-};
-
-struct FindTarget {
-  std::string target_name;
-  std::vector<std::string> ph_names;
-  std::vector<SpawnPoint> spawn_points;
-  std::vector<SpawnPath> paths;
-};
+#include "entity_helper.h"
 
 class ChetoFind {
  public:
@@ -38,13 +17,20 @@ class ChetoFind {
   void Disable();
 
  private:
+
+  constexpr static float tolerance_sq = 50.0f * 50.0f;
+
   void tick();
   void start(const std::string &name);
-  void stop();
 
-  static const std::unordered_map<std::string, FindTarget> &GetKnownTargets();
+  void setupPathings();
+  void filterPHs();
 
-  std::vector<Zeal::GameStructures::Entity *> targets;
+  std::map<std::string, FindTarget> targetList;
+
+  std::unordered_map<int, PathInfo> path_by_grid;
+  std::vector<Segment> spawn_to_path_segments;
+  std::unordered_map<std::string, struct Zeal::GameStructures::Entity *> ph_list;
 
   bool active = false;
   FindTarget current_target;

@@ -1,6 +1,9 @@
 #include "entity_helper.h"
 
+#include "entity_manager.h"
 #include "game_functions.h"
+#include "string_util.h"
+#include "zeal.h"
 
 Zeal::GameStructures::Entity *EntityHelper::get_player_by_name(const std::string &name) {
 
@@ -33,3 +36,28 @@ std::string EntityHelper::get_base_name(const std::string &s) {
   while (end > 0 && std::isdigit(static_cast<unsigned char>(s[end - 1]))) --end;
   return s.substr(0, end);
 };
+
+EntityHelper::EntityMap EntityHelper::filterNonPhs(const std::vector<std::string> &ph_names) {
+
+  auto response = std::unordered_map<std::string, struct Zeal::GameStructures::Entity *>();
+
+  auto *entity_manager = ZealService::get_instance()->entity_manager.get();
+  if (!entity_manager) return response;
+
+  auto entities = entity_manager->GetAll();
+
+  for (auto &entry : entities) {
+    if (!entry.second || entry.first.empty()) continue;
+    if (entry.second->Type != Zeal::GameEnums::NPC) continue;
+
+    auto entity_name = EntityHelper::get_base_name(entry.first);
+    if (std::any_of(ph_names.begin(), ph_names.end(),
+        [&entity_name](const std::string &ph_name) {
+            return Zeal::String::compare_insensitive(entity_name, ph_name);
+        })) {
+      response.insert(entry);
+    }
+  }
+
+  return response;
+}
