@@ -4,6 +4,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 typedef float vec_t;
 typedef vec_t vec2_t[2];
@@ -329,4 +330,10 @@ struct Vec4 {
 
   // inline ImVec4 toImVec4() { return { x, y, z, w }; }
   //	inline ImColor toImColor() { return { x, y, z, w }; }
+};
+
+class VectorHelper {
+ public:
+  static float dist2DPointToSegmentSq(const Vec2 &p, const Vec2 &a, const Vec2 &b);
+  static bool isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance);
 };

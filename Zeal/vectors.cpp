@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 
-float dist2DPointToSegmentSq(const Vec2 &p, const Vec2 &a, const Vec2 &b) {
+float VectorHelper::dist2DPointToSegmentSq(const Vec2 &p, const Vec2 &a, const Vec2 &b) {
   Vec2 ab = {b.x - a.x, b.y - a.y};
   Vec2 ap = {p.x - a.x, p.y - a.y};
 
@@ -23,7 +23,7 @@ float dist2DPointToSegmentSq(const Vec2 &p, const Vec2 &a, const Vec2 &b) {
   return dx * dx + dy * dy;
 }
 
-bool isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance = 1.0f) {
+bool VectorHelper::isPointOnPath(const std::vector<Vec3> &points, Vec3 testPoint, float tolerance) {
   if (points.size() < 2) return false;
 
   Vec2 p = testPoint.toVec2();

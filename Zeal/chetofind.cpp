@@ -3,13 +3,16 @@
 #include <algorithm>
 
 #include "callbacks.h"
-#include "chetofind_data.h"
 #include "commands.h"
 #include "entity_manager.h"
 #include "game_functions.h"
 #include "string_util.h"
 #include "zeal.h"
 #include "zone_map.h"
+
+#include "chetofind_data.h"
+#include "entity_helper.h"
+
 
 static const D3DCOLOR kAlertColor = D3DCOLOR_XRGB(255, 50, 50);
 
@@ -37,7 +40,6 @@ void ChetoFind::start(const std::string &name) {
 
   current_target = it->second;
   active = true;
-  alert_fired = false;
 
   Zeal::Game::print_chat("ChetoFind: Tracking '%s'. Placeholders:", current_target.target_name.c_str());
   for (auto &ph : current_target.ph_names) Zeal::Game::print_chat("  - %s", ph.c_str());
@@ -46,10 +48,7 @@ void ChetoFind::start(const std::string &name) {
 }
 
 void ChetoFind::stop() {
-  if (!active) return;
   active = false;
-  alert_fired = false;
-  ph_entities.clear();
   current_target = {};
   ZealService::get_instance()->zone_map->clear();
   Zeal::Game::print_chat("ChetoFind: Disabled.");
@@ -59,89 +58,126 @@ void ChetoFind::tick() {
   if (!active) return;
 
   auto now = GetTickCount64();
+  if (now - scan_timestamp < 1000) return;
+  scan_timestamp = now;
 
-  if (!is_updating && (now - scan_timestamp >= 1000)) {
-    scan_timestamp = now;
-    marker_index = 0;
-    is_updating = true;
-    ph_entities.clear();
-
-    auto *entity_manager = ZealService::get_instance()->entity_manager.get();
-    if (!entity_manager) return;
-
-    auto entities = entity_manager->GetAll();
-    bool target_found = false;
-
-    for (auto &entry : entities) {
-      if (!entry.second || entry.first.empty()) continue;
-      if (entry.second->Type != Zeal::GameEnums::NPC) continue;
-
-      if (Zeal::String::contains(entry.first, current_target.target_name)) {
-        target_found = true;
-        ph_entities.insert(ph_entities.begin(), entry.second);
-
-        if (!alert_fired) {
-          alert_fired = true;
-          Zeal::Game::set_target(entry.second);
-          Zeal::Game::print_chat(USERCOLOR_SHOUT, "ChetoFind: >>> %s FOUND! <<<", current_target.target_name.c_str());
-          ZealService::get_instance()->zone_map->add_dynamic_label(
-              std::string("[") + current_target.target_name + "]", static_cast<int>(entry.second->Position.x),
-              static_cast<int>(entry.second->Position.y), 0, kAlertColor);
-        }
-        continue;
-      }
-
-      for (auto &ph_name : current_target.ph_names) {
-        if (Zeal::String::compare_insensitive(entry.first, ph_name)) {
-          ph_entities.push_back(entry.second);
-          break;
-        }
-      }
-    }
-
-    if (!target_found) alert_fired = false;
-
-    ZealService::get_instance()->zone_map->clear();
-  }
-
-  if (is_updating) {
-    if (marker_index < ph_entities.size()) {
-      auto *ent = ph_entities[marker_index++];
-      if (ent) {
-        bool is_target = Zeal::String::contains(std::string(ent->Name), current_target.target_name);
-        std::string label = is_target ? std::string("[") + current_target.target_name + "]" : std::string("PH:") + ent->Name;
-        ZealService::get_instance()->zone_map->add_marker(static_cast<int>(ent->Position.x), static_cast<int>(ent->Position.y), label.c_str(), false);
-      }
-      return;
-    }
-    is_updating = false;
-  }
-}
-
-void ChetoFind::search_ph() {
   auto *entity_manager = ZealService::get_instance()->entity_manager.get();
   if (!entity_manager) return;
 
+  auto *zone_map = ZealService::get_instance()->zone_map.get();
+  if (!zone_map) return;
+
+  // Convert spawn paths to Vec3 lists once per scan.
+  std::vector<std::vector<Vec3>> path_points;
+  for (auto &path : current_target.paths) {
+    std::vector<Vec3> pts;
+    for (auto &wp : path.waypoints) pts.push_back(Vec3(wp.x, wp.y, wp.z));
+    path_points.push_back(pts);
+  }
+
+  zone_map->clear();
+
   auto entities = entity_manager->GetAll();
-  bool target_found = false;
 
   for (auto &entry : entities) {
     if (!entry.second || entry.first.empty()) continue;
     if (entry.second->Type != Zeal::GameEnums::NPC) continue;
 
+    auto *ent = entry.second;
+
+    // On every iteration check if target is up
     if (Zeal::String::contains(entry.first, current_target.target_name)) {
+      Zeal::Game::set_target(ent);
+      Zeal::Game::print_chat("ChetoFind: >>> %s FOUND! <<<", current_target.target_name.c_str());
+      zone_map->add_marker(static_cast<int>(ent->Position.x), static_cast<int>(ent->Position.y),
+                           (std::string("[") + current_target.target_name + "]").c_str(), false);
+      break;
+    }
 
-      // Posible PH 
-      auto entity = entry.second;
+    auto entity_name = EntityHelper::get_base_name(entry.first);
 
-      // Reject if its stationary
-      if (entity->MovementSpeed == 0.0f) continue;
+    // Filter out entities that are not placeholders for the target.
+    if (!std::any_of(current_target.ph_names.begin(), current_target.ph_names.end(),
+                     [&entity_name](const std::string &ph_name) {
+                       return Zeal::String::compare_insensitive(entity_name, ph_name);
+                     })) {
+      continue;
+    }
 
+    // Filter out entities that are stationary
+    if (ent->MovementSpeed == 0.0f) {
+      continue;
+    }
+
+    // Check if this PH is near any spawn point.
+    /* for (auto &sp : current_target.spawn_points) {
+      float dx = ent->Position.x - sp.x;
+      float dy = ent->Position.y - sp.y;
+      if (dx * dx + dy * dy < 50.0f * 50.0f) {
+        zone_map->add_marker(static_cast<int>(ent->Position.x), 
+            static_cast<int>(ent->Position.y),            
+            (std::string("[") + ent->Name + "]").c_str(), 
+            false);
+      }
+    }*/
+
+    // Check if this PH is walking along any patrol path.
+    Vec3 pos(ent->Position.x, ent->Position.y, ent->Position.z);
+    for (auto &pts : path_points) {
+      if (VectorHelper::isPointOnPath(pts, pos, 50.0f)) {
+        zone_map->add_marker(static_cast<int>(ent->Position.x), 
+            static_cast<int>(ent->Position.y),                             
+            (std::string("[") + ent->Name + "]").c_str(), 
+            false);
+      }
     }
   }
+
+
+    /*// Check if this is a known placeholder.
+    bool is_ph = false;
+    for (auto &ph_name : current_target.ph_names) {
+      if (Zeal::String::compare_insensitive(entry.first, ph_name)) {
+        is_ph = true;
+        break;
+      }
+    }
+    if (!is_ph) continue;
+
+    // Check if this PH is near any spawn point.
+    bool at_spawn = false;
+    for (auto &sp : current_target.spawn_points) {
+      float dx = ent->Position.x - sp.x;
+      float dy = ent->Position.y - sp.y;
+      if (dx * dx + dy * dy < 50.0f * 50.0f) {
+        at_spawn = true;
+        break;
+      }
+    }
+
+    // Check if this PH is walking along any patrol path.
+    bool on_path = false;
+    Vec3 pos(ent->Position.x, ent->Position.y, ent->Position.z);
+    for (auto &pts : path_points) {
+      if (VectorHelper::isPointOnPath(pts, pos, 50.0f)) {
+        on_path = true;
+        break;
+      }
+    }
+
+    std::string label;
+    if (on_path)
+      label = std::string("PH*:") + ent->Name;
+    else if (at_spawn)
+      label = std::string("PH:") + ent->Name;
+    else
+      label = std::string("??:") + ent->Name;
+
+    zone_map->add_marker(static_cast<int>(ent->Position.x), static_cast<int>(ent->Position.y), label.c_str(), false);
+  }
+
+  if (!target_found) alert_fired = false;*/
 }
-
-
 
 ChetoFind::ChetoFind(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::CharacterSelect);

@@ -30,7 +30,10 @@ bool SpellHelper::cast_spell(const Spell &spell) {
       return check_casting(spell);
     case Casting:
       return casting();
+    default:
+      return true;
   }
+
 }
 
 bool SpellHelper::about_to_cast(const Spell &spell) {

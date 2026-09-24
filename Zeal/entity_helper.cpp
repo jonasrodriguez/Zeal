@@ -27,3 +27,9 @@ Zeal::GameStructures::Entity *EntityHelper::get_pet_by_owner(Zeal::GameStructure
   }
   return nullptr;
 }
+
+std::string EntityHelper::get_base_name(const std::string &s) {
+  size_t end = s.size();
+  while (end > 0 && std::isdigit(static_cast<unsigned char>(s[end - 1]))) --end;
+  return s.substr(0, end);
+};

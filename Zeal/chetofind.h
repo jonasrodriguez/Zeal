@@ -42,15 +42,11 @@ class ChetoFind {
   void start(const std::string &name);
   void stop();
 
-  void search_ph();
-
   static const std::unordered_map<std::string, FindTarget> &GetKnownTargets();
 
+  std::vector<Zeal::GameStructures::Entity *> targets;
+
   bool active = false;
-  bool alert_fired = false;
   FindTarget current_target;
   ULONGLONG scan_timestamp = 0;
-  size_t marker_index = 0;
-  bool is_updating = false;
-  std::vector<Zeal::GameStructures::Entity *> ph_entities;
 };
