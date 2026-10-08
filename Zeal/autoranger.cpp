@@ -145,7 +145,6 @@ void AutoRanger::check_buffs() {
   auto spell = SpellHelper::get_missing_or_fading_buff({eagle, precision});
   if (spell.spell_id != -1) {
     Zeal::Game::print_chat("AutoRanger: Rebuffing...");
-    Zeal::Game::set_target(Zeal::Game::get_self());
     buff = spell;
     state = Buff;
   }
