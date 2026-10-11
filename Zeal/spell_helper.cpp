@@ -21,40 +21,50 @@ void SpellHelper::search_spells(SpellSet &spellset) {
   }
 }
 
-bool SpellHelper::cast_spell(const Spell &spell) {
+bool SpellHelper::cast_spell(const Spell &spell, bool reset_gcd) {
+
+  auto result = StillCasting;
 
   switch (state) {
     case Idle:
-      return about_to_cast(spell);
+      result = about_to_cast(spell);
+      break;
     case CheckCasting:
-      return check_casting(spell);
+      result = check_casting(spell);
+      break;
     case Casting:
-      return casting();
+      result = casting(reset_gcd);
+      break;
     default:
-      return true;
+      result = NotCasting;
+      break;
   }
 
+  return result == StillCasting ? false : true;
 }
 
-bool SpellHelper::about_to_cast(const Spell &spell) {
+SpellHelper::CastResult SpellHelper::about_to_cast(const Spell &spell) {
   Zeal::Game::print_chat("About to cast !");
   if (spell.gem == -1) {
     Zeal::Game::print_chat("Spell not found in spell gems.");
-    return true;
+    return NotCasting;
   }
 
   if (target_out_range(spell)) {
     Zeal::Game::print_chat("Target out of range.");
-    return true;
+    return OutOfRange;
   }
   
   cast(spell);
+  state = CheckCasting;
+
   casting_started_timestamp = GetTickCount64();
   retry_count++;
-  return false;
+
+  return StillCasting;
 }
 
-bool SpellHelper::check_casting(const Spell &spell) {
+SpellHelper::CastResult SpellHelper::check_casting(const Spell &spell) {
   if (Zeal::Game::GetSpellCastingTime() != -1) {
     casting_visible_timestamp = GetTickCount64();
     if ((casting_visible_timestamp - casting_started_timestamp) > 500) {
@@ -72,23 +82,26 @@ bool SpellHelper::check_casting(const Spell &spell) {
       casting_spell_id = kInvalidSpellId;
       retry_count = 0;
       state = Idle;
-      return true;
+      return NotCasting;
     }
   }
 
-  return false;
+  return StillCasting;
 }
 
-bool SpellHelper::casting() {
+SpellHelper::CastResult SpellHelper::casting(bool reset_gcd) {
   if (Zeal::Game::GetSpellCastingTime() != -1) {
-    return false; // Nothing to do, still casting
+    //Zeal::Game::print_chat("Casting -> Still casting. %d remaining...", Zeal::Game::GetSpellCastingTime());
+    return StillCasting;  // Nothing to do, still casting
   } else {         
     // Finish casting, clear state and reset retry count
     casting_spell_id = kInvalidSpellId;
     retry_count = 0;
     state = Idle;
 
-    return true;
+    // If reset global cooldown is true, try to use journeyman's boots
+
+    return Success;
   }
 }
 
@@ -152,6 +165,7 @@ void SpellHelper::cast(const Spell &spell) {
 
   auto fizzle = self->ActorInfo->FizzleTimeout;
   auto gameTime = Zeal::Game::get_display()->GameTimeMs;
+
   // Check if gem is ready before trying to cast
   if (fizzle > gameTime) {
     return;
