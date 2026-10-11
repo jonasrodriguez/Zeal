@@ -3,6 +3,9 @@
 #include "game_functions.h"
 #include <unordered_map>
 
+// Forward declaration from commands.cpp - executes a command bypassing the detour.
+void ForwardCommand(std::string cmd);
+
 void SpellHelper::search_spells(SpellSet &spellset) {
   Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
 
@@ -55,7 +58,17 @@ SpellHelper::CastResult SpellHelper::about_to_cast(const Spell &spell) {
     return OutOfRange;
   }
   
-  cast(spell);
+  if (!is_gem_ready(spell)) {
+    Zeal::Game::print_chat("Spell gem not ready.");
+    return GemNotReady;
+  }
+
+  // Casting !
+  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
+  if (char_info->cast(spell.gem, char_info->MemorizedSpell[spell.gem], 0, -1)) {
+    casting_spell_id = char_info->MemorizedSpell[spell.gem];
+  }
+
   state = CheckCasting;
 
   casting_started_timestamp = GetTickCount64();
@@ -91,7 +104,12 @@ SpellHelper::CastResult SpellHelper::check_casting(const Spell &spell) {
 
 SpellHelper::CastResult SpellHelper::casting(bool reset_gcd) {
   if (Zeal::Game::GetSpellCastingTime() != -1) {
-    //Zeal::Game::print_chat("Casting -> Still casting. %d remaining...", Zeal::Game::GetSpellCastingTime());
+    if (Zeal::Game::GetSpellCastingTime() == 100) {
+      Zeal::Game::print_chat("Ultimo segundo : 100 ??");
+    }
+    if (Zeal::Game::GetSpellCastingTime() == 10) {
+      Zeal::Game::print_chat("Ultimo segundo : 10 ??");
+    }
     return StillCasting;  // Nothing to do, still casting
   } else {         
     // Finish casting, clear state and reset retry count
@@ -100,9 +118,36 @@ SpellHelper::CastResult SpellHelper::casting(bool reset_gcd) {
     state = Idle;
 
     // If reset global cooldown is true, try to use journeyman's boots
+    if (reset_gcd) {
+      Zeal::Game::print_chat("Reset GCD by clicking Journeyman's Boots.");
+      int slot = Zeal::Game::find_use_item_by_name("Journeyman's Boots", true);
+      if (slot != -1) {
+        Zeal::GameStructures::GAMEITEMINFO *out_item = nullptr;
+        Zeal::Game::use_item(slot, false, &out_item);
+      }
+    }
 
     return Success;
   }
+}
+
+bool SpellHelper::is_gem_ready(const Spell &spell) {
+
+  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
+  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
+
+  auto fizzle = self->ActorInfo->FizzleTimeout;
+  auto gameTime = Zeal::Game::get_display()->GameTimeMs;
+
+  // Check if gem is ready before trying to cast
+  if (fizzle > gameTime) {
+    return false;
+  }
+  if (self->ActorInfo->RecastTimeout[spell.gem] > gameTime) {
+    return false;
+  }
+
+  return true;
 }
 
 bool SpellHelper::target_out_range(const Spell &spell) {
@@ -157,26 +202,6 @@ Spell SpellHelper::get_missing_or_fading_buff(const std::vector<Spell> &buffs) {
   }
 
   return Spell{-1, -1, -1};
-}
-
-void SpellHelper::cast(const Spell &spell) {
-  Zeal::GameStructures::Entity *self = Zeal::Game::get_self();
-  Zeal::GameStructures::GAMECHARINFO *char_info = Zeal::Game::get_char_info();
-
-  auto fizzle = self->ActorInfo->FizzleTimeout;
-  auto gameTime = Zeal::Game::get_display()->GameTimeMs;
-
-  // Check if gem is ready before trying to cast
-  if (fizzle > gameTime) {
-    return;
-  }
-  if (self->ActorInfo->RecastTimeout[spell.gem] > gameTime) {
-    return;
-  }
-
-  if (char_info->cast(spell.gem, char_info->MemorizedSpell[spell.gem], 0, -1)) {
-    casting_spell_id = char_info->MemorizedSpell[spell.gem];
-  }
 }
 
 void SpellHelper::reset_spells(SpellSet &spells) {

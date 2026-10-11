@@ -40,6 +40,7 @@ void AutoEnchanter::disable() {
   auto_enchanter = false;
   my_pet = nullptr;
   spell_helper.reset_spells(spellset);
+  recharm_attempts = 0;
   state = Idle;
 }
 
@@ -147,17 +148,24 @@ void AutoEnchanter::tick_break() {
 
 void AutoEnchanter::tick_stun() {
 
-  if (spell_helper.cast_spell(stun)) {
+  if (spell_helper.cast_spell(stun, true)) {
     Zeal::Game::print_chat("AutoRanger: Stunned!");
     state = Charm;
   }
 }
 
 void AutoEnchanter::tick_charm() {
+  if (recharm_attempts >= kMaxRecharmAttempts) {
+    Zeal::Game::print_chat("AutoRanger: Max recharm attempts reached, giving up.");
+    state = Idle;
+    return;
+  }
   if (spell_helper.cast_spell(charm)) {
     Zeal::Game::print_chat("AutoRanger: Charmed!");
+    recharm_attempts = 0;
     state = Idle;
   }
+  recharm_attempts++;
 }
 
 AutoEnchanter::AutoEnchanter(ZealService *zeal) {

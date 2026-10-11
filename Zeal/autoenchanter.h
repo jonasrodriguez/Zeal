@@ -49,6 +49,9 @@ class AutoEnchanter {
 
   WORD casting_spell_id = kInvalidSpellId;
 
+  int recharm_attempts = 0;
+  static constexpr int kMaxRecharmAttempts = 2;
+
   ULONGLONG last_interval_time = 0;
   ULONGLONG last_sos_cast = 0;
   static constexpr DWORD kCheckIntervalMs = 200;
