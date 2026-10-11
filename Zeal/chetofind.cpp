@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "callbacks.h"
+#include "chetofind_data.h"
 #include "commands.h"
 #include "entity_manager.h"
 #include "game_functions.h"
@@ -10,21 +11,18 @@
 #include "zeal.h"
 #include "zone_map.h"
 
-#include "chetofind_data.h"
-
 void ChetoFind::Disable() {
   active = false;
   current_target = {};
-  targetList.clear();
+  tracked_phs.clear();
+  respawn_timer = 0;
   ZealService::get_instance()->zone_map->clear();
-  Zeal::Game::print_chat("ChetoFind: Disabled.");
 }
 
 void ChetoFind::start(const std::string &name) {
   std::string lower_name = name;
   std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
 
-  // Get data from target
   auto target = getTargetData(lower_name);
   if (!target) {
     Zeal::Game::print_chat("ChetoFind: Unknown target '%s'. Known targets:", name.c_str());
@@ -38,18 +36,14 @@ void ChetoFind::start(const std::string &name) {
   Zeal::Game::print_chat("ChetoFind: %d spawn points, %d patrol paths loaded.", current_target.spawn_points.size(),
                          current_target.paths.size());
 
-  // Get current target or PH list
-  ph_list = EntityHelper::filterNonPhs(current_target.ph_names);
-
   setupPathings();
-  filterPHs();
 
+  tracked_phs.clear();
+  respawn_timer = 0;
   active = true;
 }
 
 void ChetoFind::setupPathings() {
-
-  // Build a lookup from grid_id -> {waypoints, is_circular}.
   path_by_grid.clear();
   for (auto &path : current_target.paths) {
     std::vector<Vec3> pts;
@@ -57,7 +51,6 @@ void ChetoFind::setupPathings() {
     path_by_grid[path.grid_id] = {std::move(pts), path.grid_type == 0};
   }
 
-  // Build spawn-to-path segments: each spawn point connects to waypoint[0] of its assigned path.
   spawn_to_path_segments.clear();
   for (auto &sp : current_target.spawn_points) {
     auto it = path_by_grid.find(sp.pathgrid);
@@ -68,44 +61,72 @@ void ChetoFind::setupPathings() {
   }
 }
 
-void ChetoFind::filterPHs() {
-  const size_t initial_size = ph_list.size();
-  std::unordered_map<std::string, struct Zeal::GameStructures::Entity *> filtered;
-  for (auto &entry : ph_list) {
-    auto *ent = entry.second;
-    Vec3 pos(ent->Position.x, ent->Position.y, ent->Position.z);
-    Vec2 pos2d = pos.toVec2();
+bool ChetoFind::isOnPathOrSpawnSegment(Zeal::GameStructures::Entity *ent) {
+  Vec3 pos(ent->Position.x, ent->Position.y, ent->Position.z);
+  Vec2 pos2d = pos.toVec2();
 
-    // Remove stationary NPCs - Not sure about this one..
-    /* if (ent->MovementSpeed == 0.0f) {
-      continue;
-    }*/
+  for (auto &[grid_id, info] : path_by_grid) {
+    if (VectorHelper::isPointOnPath(info.points, pos, 50.0f, info.circular)) return true;
+  }
 
-    bool match = false;
-    // Check if this PH is walking along any patrol path.
-    for (auto &[grid_id, info] : path_by_grid) {
-      if (VectorHelper::isPointOnPath(info.points, pos, 50.0f, info.circular)) {
-        match = true;
-        break;
+  for (auto &seg : spawn_to_path_segments) {
+    if (VectorHelper::dist2DPointToSegmentSq(pos2d, seg.a, seg.b) <= kToleranceSq) return true;
+  }
+
+  return false;
+}
+
+void ChetoFind::refreshEntities() {
+  auto *entity_manager = ZealService::get_instance()->entity_manager.get();
+  if (!entity_manager) return;
+
+  auto now = GetTickCount64();
+
+  // Check if any currently tracked PH has disappeared (died).
+  for (auto it = tracked_phs.begin(); it != tracked_phs.end();) {
+    auto *ent = entity_manager->Get(it->second.spawn_id);
+    if (!ent || ent->StructType != 0x03) {
+      if (respawn_timer == 0) {
+        respawn_timer = now + (current_target.respawn_seconds * 1000);
+        Zeal::Game::print_chat("ChetoFind: PH died. Respawn in %ds...", current_target.respawn_seconds);
       }
-    }
-    // Check if this PH is walking from a spawn point to the start of its path.
-    if (!match) {
-      for (auto &seg : spawn_to_path_segments) {
-        if (VectorHelper::dist2DPointToSegmentSq(pos2d, seg.a, seg.b) <= tolerance_sq) {
-          match = true;
-          break;
-        }
-      }
-    }
-    if (match) {
-      filtered.insert(entry);
+      it = tracked_phs.erase(it);
+    } else {
+      ++it;
     }
   }
 
-  ph_list = filtered;
-  if (initial_size != ph_list.size()) {
-    Zeal::Game::print_chat("ChetoFind: Fitering PHs de %d a %d", initial_size, ph_list.size());
+  // Scan for new PHs or the target itself.
+  auto entities = entity_manager->GetAll();
+  for (auto &entry : entities) {
+    if (!entry.second || entry.first.empty()) continue;
+    if (entry.second->Type != Zeal::GameEnums::NPC) continue;
+
+    auto *ent = entry.second;
+
+    if (Zeal::String::contains(entry.first, current_target.target_name)) {
+      Zeal::Game::set_target(ent);
+      Zeal::Game::print_chat(USERCOLOR_SHOUT, "ChetoFind: >>> %s FOUND! <<<", current_target.target_name.c_str());
+      respawn_timer = 0;
+      return;
+    }
+
+    if (tracked_phs.count(ent->SpawnId)) continue;
+
+    auto entity_name = EntityHelper::get_base_name(entry.first);
+    bool is_ph = std::any_of(
+        current_target.ph_names.begin(), current_target.ph_names.end(),
+        [&entity_name](const std::string &ph_name) { return Zeal::String::compare_insensitive(entity_name, ph_name); });
+    if (!is_ph) continue;
+
+    if (!isOnPathOrSpawnSegment(ent)) continue;
+
+    TrackedPH tracked;
+    tracked.spawn_id = ent->SpawnId;
+    tracked.last_heading = ent->Heading;
+    tracked.last_heading_change = now;
+    tracked.stationary = false;
+    tracked_phs[ent->SpawnId] = tracked;
   }
 }
 
@@ -116,20 +137,43 @@ void ChetoFind::tick() {
   if (now - scan_timestamp < 1000) return;
   scan_timestamp = now;
 
-  filterPHs();
+  // Check respawn timer.
+  if (respawn_timer != 0 && now >= respawn_timer) {
+    Zeal::Game::print_chat("ChetoFind: Respawn window! Scanning for new PH or target...");
+    respawn_timer = 0;
+  }
 
+  refreshEntities();
+
+  auto *entity_manager = ZealService::get_instance()->entity_manager.get();
+  if (!entity_manager) return;
+
+  // Update heading tracking for each PH.
+  for (auto &[id, ph] : tracked_phs) {
+    auto *ent = entity_manager->Get(ph.spawn_id);
+    if (!ent) continue;
+    float current_heading = ent->Heading;
+    if (current_heading != ph.last_heading) {
+      ph.last_heading = current_heading;
+      ph.last_heading_change = now;
+      ph.stationary = false;
+    } else if (!ph.stationary && (now - ph.last_heading_change >= kStationaryThresholdMs)) {
+      ph.stationary = true;
+    }
+  }
+
+  // Render markers on the map.
   auto *zone_map = ZealService::get_instance()->zone_map.get();
   if (!zone_map) return;
 
   zone_map->clear();
-  for (auto &entry : ph_list) {
-    auto *ent = entry.second;
-    zone_map->add_marker(
-        static_cast<int>(ent->Position.x), 
-        static_cast<int>(ent->Position.y),                         
-        (std::string("[") + ent->Name + "]").c_str(), false);
+  for (auto &[id, ph] : tracked_phs) {
+    if (ph.stationary) continue;
+    auto *ent = entity_manager->Get(ph.spawn_id);
+    if (!ent) continue;
+    zone_map->add_marker(static_cast<int>(ent->Position.x), static_cast<int>(ent->Position.y),
+                         (std::string("[") + ent->Name + "]").c_str(), false);
   }
-
 }
 
 ChetoFind::ChetoFind(ZealService *zeal) {
@@ -140,19 +184,20 @@ ChetoFind::ChetoFind(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { tick(); });
 
   zeal->commands_hook->Add("/chetofind", {"/cfind"}, "Tracks a rare spawn and its placeholders on the map.",
-    [this](std::vector<std::string> &args) {
-        if (args.size() >= 2) {
-        if (Zeal::String::compare_insensitive(args[1], "off")) {
-            Disable();
-            return true;
-        }
-        start(args[1]);
-        return true;
-        }
-        Zeal::Game::print_chat("Usage: /chetofind <target> | off");
-        Zeal::Game::print_chat("Known targets: Quillmane");
-        return true;
-    });
+                           [this](std::vector<std::string> &args) {
+                             if (args.size() >= 2) {
+                               if (Zeal::String::compare_insensitive(args[1], "off")) {
+                                 Zeal::Game::print_chat("ChetoFind: Disabled.");
+                                 Disable();
+                                 return true;
+                               }
+                               start(args[1]);
+                               return true;
+                             }
+                             Zeal::Game::print_chat("Usage: /chetofind <target> | off");
+                             Zeal::Game::print_chat("Known targets: Quillmane");
+                             return true;
+                           });
 }
 
 ChetoFind::~ChetoFind() {}

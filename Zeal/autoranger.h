@@ -39,7 +39,7 @@ class AutoRanger {
   bool auto_ranger = false;
   RangerState state = Idle;
 
-  Spell snare{-1, 512};
+  Spell snare{-1, 512, -1, 200};
   Spell eagle{-1, 2599}; // Eagle Eye
   Spell precision{-1, 2594};  // Nature's Precision
   Spell buff;

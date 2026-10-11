@@ -1,13 +1,19 @@
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "entity_helper.h"
 #include "game_structures.h"
 
-#include "entity_helper.h"
+struct TrackedPH {
+  WORD spawn_id = 0;
+  float last_heading = 0.0f;
+  ULONGLONG last_heading_change = 0;
+  bool stationary = false;
+};
 
 class ChetoFind {
  public:
@@ -17,20 +23,21 @@ class ChetoFind {
   void Disable();
 
  private:
-
-  constexpr static float tolerance_sq = 50.0f * 50.0f;
+  static constexpr float kToleranceSq = 50.0f * 50.0f;
+  static constexpr ULONGLONG kStationaryThresholdMs = 5000;
 
   void tick();
   void start(const std::string &name);
 
   void setupPathings();
-  void filterPHs();
-
-  std::map<std::string, FindTarget> targetList;
+  void refreshEntities();
+  bool isOnPathOrSpawnSegment(Zeal::GameStructures::Entity *ent);
 
   std::unordered_map<int, PathInfo> path_by_grid;
   std::vector<Segment> spawn_to_path_segments;
-  std::unordered_map<std::string, struct Zeal::GameStructures::Entity *> ph_list;
+
+  std::unordered_map<WORD, TrackedPH> tracked_phs;
+  ULONGLONG respawn_timer = 0;
 
   bool active = false;
   FindTarget current_target;

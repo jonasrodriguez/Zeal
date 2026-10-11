@@ -22,6 +22,7 @@ class SpellHelper {
 
   void cast(const Spell &spell);
 
+  bool target_out_range(const Spell &spell);
   bool about_to_cast(const Spell &spell);
   bool check_casting(const Spell &spell);
   bool casting();

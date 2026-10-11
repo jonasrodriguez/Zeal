@@ -43,6 +43,11 @@ bool SpellHelper::about_to_cast(const Spell &spell) {
     return true;
   }
 
+  if (target_out_range(spell)) {
+    Zeal::Game::print_chat("Target out of range.");
+    return true;
+  }
+  
   cast(spell);
   casting_started_timestamp = GetTickCount64();
   retry_count++;
@@ -76,11 +81,9 @@ bool SpellHelper::check_casting(const Spell &spell) {
 
 bool SpellHelper::casting() {
   if (Zeal::Game::GetSpellCastingTime() != -1) {
-    Zeal::Game::print_chat("Casting still...");
     return false; // Nothing to do, still casting
   } else {         
     // Finish casting, clear state and reset retry count
-    Zeal::Game::print_chat("Finished casting !");
     casting_spell_id = kInvalidSpellId;
     retry_count = 0;
     state = Idle;
@@ -89,6 +92,30 @@ bool SpellHelper::casting() {
   }
 }
 
+bool SpellHelper::target_out_range(const Spell &spell) {
+  if (spell.range < 0) {
+    return false;
+  }
+
+  auto target = Zeal::Game::get_target();
+  auto self = Zeal::Game::get_self();
+
+  if (!target || !self) {
+    return false;
+  }
+  if (target == self) {
+    return false;
+  }
+
+  Vec3 targer_position = target->Position;
+  Vec3 player_position = self->Position;
+  float distance = player_position.Dist2D(targer_position);
+  if (distance > spell.range) {
+    return true;
+  }
+
+  return false;
+}
 
 Spell SpellHelper::get_missing_or_fading_buff(const std::vector<Spell> &buffs) {
 
