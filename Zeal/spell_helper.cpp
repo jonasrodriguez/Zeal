@@ -81,17 +81,14 @@ SpellHelper::CastResult SpellHelper::check_casting(const Spell &spell) {
   if (Zeal::Game::GetSpellCastingTime() != -1) {
     casting_visible_timestamp = GetTickCount64();
     if ((casting_visible_timestamp - casting_started_timestamp) > 500) {
-      Zeal::Game::print_chat("Check casting -> All good, reset retries!");
-
       retry_count = 0;
       state = Casting;
     }
   } else {
-    Zeal::Game::print_chat("Check casting -> Error casting, retry !");
     retry_count++;
     state = Idle;
     if (retry_count > max_retries) {
-      Zeal::Game::print_chat("Cancelando casteo, demasiadas retries (Estas demasiado lejos?)");
+      Zeal::Game::print_chat("Cancelando casteo, demasiadas retries (Target no visible?)");
       casting_spell_id = kInvalidSpellId;
       retry_count = 0;
       state = Idle;
