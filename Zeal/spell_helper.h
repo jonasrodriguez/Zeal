@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "game_structures.h"
-
 #include "spell.h"
 
 class SpellHelper {
@@ -15,7 +14,6 @@ class SpellHelper {
 
   enum CastResult { Success, GemNotReady, OutOfRange, NotCasting, StillCasting };
   bool cast_spell(const Spell &spell, bool reset_gcd = false);
-
 
  private:
   static constexpr int kFadingBuffThreshold = 10;  // seconds

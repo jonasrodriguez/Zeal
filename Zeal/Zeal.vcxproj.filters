@@ -426,6 +426,12 @@
     <ClInclude Include="chetofind_data.h">
       <Filter>Header Files\juank\helpers</Filter>
     </ClInclude>
+    <ClInclude Include="assist_target.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="get_behind.h">
+      <Filter>Header Files\juank\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -726,6 +732,9 @@
       <Filter>Source Files\helpers</Filter>
     </ClCompile>
     <ClCompile Include="chetofind.cpp">
+      <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="get_behind.cpp">
       <Filter>Source Files\juank\helpers</Filter>
     </ClCompile>
   </ItemGroup>

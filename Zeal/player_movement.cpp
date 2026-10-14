@@ -182,6 +182,23 @@ void PlayerMovement::set_strafe(strafe_direction dir) {
   }
 }
 
+bool PlayerMovement::is_moving() {
+  auto *self = Zeal::Game::get_controlled();
+  if (!self) return false;
+  return self->MovementSpeed > 0.01f || *reinterpret_cast<int *>(0x00798600) != 0;  // Speed or autorun flag.
+}
+
+void PlayerMovement::stop_moving() {
+  if (*reinterpret_cast<int *>(0x00798600) != 0) Zeal::Game::execute_cmd(1, 1, 0);  // Toggles autorun off.
+
+  // Autorun toggling can also clear strafe, so do this after.
+  auto *movement = ZealService::get_instance()->movement.get();
+  if (movement) movement->set_strafe(strafe_direction::None);
+
+  Zeal::Game::execute_cmd(3, 0, 0);  // Release forward.
+  Zeal::Game::execute_cmd(4, 0, 0);  // Release backward.
+}
+
 // These patches improve /follow reliability. There is logic in /follow to turn run mode on and off
 // and this actually makes your character crash out of the game if your framerate is high enough.
 // There is also a smooth turning function to circle around to the followed target which is

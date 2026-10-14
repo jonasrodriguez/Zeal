@@ -3,6 +3,8 @@
 #include "game_functions.h"
 #include <unordered_map>
 
+#include "player_movement.h"
+
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
 
@@ -48,6 +50,15 @@ bool SpellHelper::cast_spell(const Spell &spell, bool reset_gcd) {
 
 SpellHelper::CastResult SpellHelper::about_to_cast(const Spell &spell) {
   Zeal::Game::print_chat("About to cast !");
+
+  if (PlayerMovement::is_moving()) {
+    Zeal::Game::print_chat("Player is moving, cannot cast.");
+    // Try to stop player from moving before retrying
+    PlayerMovement::stop_moving();
+
+    return NotCasting;
+  }
+
   if (spell.gem == -1) {
     Zeal::Game::print_chat("Spell not found in spell gems.");
     return NotCasting;
@@ -216,3 +227,4 @@ bool SpellHelper::missing_spell(const SpellSet &spells) {
   }
   return false;
 }
+

@@ -23,8 +23,13 @@ class PlayerMovement {
                                            [this](bool val) { sync_auto_follow_enable(); }};
   PlayerMovement(class ZealService *zeal);
 
- private:
   void set_strafe(strafe_direction dir);
+  strafe_direction get_strafe() const { return current_strafe; }
+
+  static void stop_moving();
+  static bool is_moving();
+
+ private:
   void sync_auto_follow_enable(bool first_boot = false);  // Update when autofollow toggles.
   void handle_autofollow();
   void callback_main();

@@ -140,6 +140,7 @@
     <ClInclude Include="chetotarget.h" />
     <ClInclude Include="come_close.h" />
     <ClInclude Include="entity_helper.h" />
+    <ClInclude Include="get_behind.h" />
     <ClInclude Include="Iautomelee.h" />
     <ClInclude Include="position_helper.h" />
     <ClInclude Include="operator_overloads.h" />
@@ -261,6 +262,7 @@
     <ClCompile Include="entity_manager.cpp" />
     <ClCompile Include="equip_item.cpp" />
     <ClCompile Include="floating_damage.cpp" />
+    <ClCompile Include="get_behind.cpp" />
     <ClCompile Include="helm_manager.cpp" />
     <ClCompile Include="items.cpp" />
     <ClCompile Include="music.cpp" />
