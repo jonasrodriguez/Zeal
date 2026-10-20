@@ -12,14 +12,8 @@ class ChetoTarget {
   void Disable();
 
  private:
-  void tick();
   void find_target(const std::string &name);
   void find_item(const std::string &item_visual_id);
 
-  size_t target_index = 0;
-  bool is_updating = false;
-
-  Zeal::GameStructures::Entity *entity = nullptr;
-  std::vector<Zeal::GameStructures::Entity *> targets;
-  ULONGLONG markers_timestamp = 0;
+  std::vector<WORD> tracked_spawn_ids;
 };

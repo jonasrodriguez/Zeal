@@ -94,10 +94,13 @@ static constexpr int kMinRadiusSize = 10;                        // Minimum ring
 static constexpr int kRingLineSegments = 72;                     // Every 5 degrees.
 static constexpr int kRingVertices = (kMaxNumberOfRings * kRingLineSegments) + 1 + 2;  // N + 1 for D3DPT_LINESTRIP and optional heading line.
 static constexpr int kMaxNonAllyTriangles = 500;                 // Markers use 1 or 2 triangles each.
+static constexpr int kMaxTrackedEntities = 250;
 static constexpr int kPositionBufferSize =
     sizeof(ZoneMap::MapVertex) *
     (kPositionVertices * (GAME_NUM_GROUP_MEMBERS + 1) + kPositionVertices * kRaidMaxMembers +
-     kRaidPositionVertices * kMaxNonAllyTriangles + kRingVertices);
+     kRaidPositionVertices * kMaxNonAllyTriangles + kRingVertices + kMaxTrackedEntities);
+
+static constexpr D3DCOLOR kTrackedColor = D3DCOLOR_XRGB(255, 0, 255);  // Magenta
 
 static constexpr DWORD kMapVertexFvfCode = (D3DFVF_XYZ | D3DFVF_DIFFUSE);
 
@@ -106,6 +109,7 @@ static constexpr int kWinMinSize = 160;  // Minimum size for window dimensions.
 // Note: Zoom factors are hard-coded in options combobox. Must keep in sync manually.
 static constexpr int kNumDefaultZoomFactors = 4;
 static constexpr float kDefaultZoomFactors[kNumDefaultZoomFactors] = {1.f, 2.f, 4.f, 8.f};
+
 
 static D3DCOLOR get_target_color() {
   const int kTargetColorIndex = 18;  // NamePlate::ColorIndex::Target
@@ -1442,6 +1446,7 @@ void ZoneMap::render_positions(IDirect3DDevice8 &device) {
   add_non_ally_position_vertices(position_vertices, pvp_entities);
   add_group_member_position_vertices(position_vertices);
   add_self_pet_position_vertices(position_vertices);
+  add_tracked_position_vertices(position_vertices);
   const int member_vertex_count = position_vertices.size() - ring_vertex_count;
 
   const float size = convert_size_fraction_to_model(position_size);
@@ -1492,6 +1497,7 @@ void ZoneMap::render_positions(IDirect3DDevice8 &device) {
   render_raid_member_labels(device);
   render_non_ally_labels(device, pvp_entities);
   render_group_member_labels(device);
+  render_tracked_labels(device);
 
   // And finally draw the self marker. Three vertices per triangle in D3DPT_TRIANGLELIST.
   device.SetStreamSource(0, position_vertex_buffer, sizeof(MapVertex));
@@ -3649,5 +3655,59 @@ void ZoneMap::destroy_external_window() {
     DestroyWindow(external_hwnd);
     external_hwnd = nullptr;
     UnregisterClass(kExternalWindowClassName, NULL);
+  }
+}
+
+// Adds a name label for each caller-tracked entity. Always shown when the list is
+// non-empty since it is an explicit command (independent of the show-all-names override).
+void ZoneMap::render_tracked_labels(IDirect3DDevice8 &device) {
+  if (tracked_spawn_ids.empty()) return;
+  auto entity_manager = ZealService::get_instance()->entity_manager.get();  // Short-term ptr.
+  if (!entity_manager) return;
+
+  render_load_font(device);
+  if (!bitmap_font) return;
+
+  const float offset_y = max(5.f, position_size * min(max_viewport_width, max_viewport_height));
+  const Vec2 offset_pixels = {0, -offset_y};
+  auto target = Zeal::Game::get_target();
+
+  const int short_name_length = kMaxNameLength - 1;
+  int count = 0;
+  for (const auto spawn_id : tracked_spawn_ids) {
+    auto entity = entity_manager->Get(spawn_id);
+    if (!entity) continue;
+    int loc_y = static_cast<int>(entity->Position.x + 0.5f);  // Position is y,x,z.
+    int loc_x = static_cast<int>(entity->Position.y + 0.5f);  // Also need to negate it below.
+    auto color = (entity == target) ? get_target_color() : kTrackedColor;
+    if (entity->Position.z < clip_min_z || entity->Position.z > clip_max_z)
+      color = color & 0x80ffffff;          // Set alpha to 50% to fade for z.
+    char label[kMaxNameLength + 1] = {0};  // Null-terminate.
+    for (int j = 0; j < short_name_length; ++j) label[j] = entity->Name[j];
+    render_label_text(label, -loc_y, -loc_x, color, LabelType::PositionLabel, offset_pixels);
+    if (++count >= kMaxTrackedEntities) break;  // Match the vertex limit.
+  }
+  bitmap_font->flush_queue_to_screen();
+  device.SetVertexShader(kMapVertexFvfCode);  // Restore assumed shader.
+}
+
+// Adds live heading-cursor markers for caller-tracked entities resolved by spawn id.
+void ZoneMap::add_tracked_position_vertices(std::vector<MapVertex> &vertices) const {
+  if (tracked_spawn_ids.empty()) return;
+  auto entity_manager = ZealService::get_instance()->entity_manager.get();  // Short-term ptr.
+  if (!entity_manager) return;
+
+  const float size = convert_size_fraction_to_model(position_size);
+  auto target = Zeal::Game::get_target();
+  int count = 0;
+  for (const auto spawn_id : tracked_spawn_ids) {
+    auto entity = entity_manager->Get(spawn_id);
+    if (!entity) continue;  // Despawned or out of zone.
+    D3DCOLOR color = (entity == target) ? get_target_color() : kTrackedColor;
+    if (entity->Position.z < clip_min_z || entity->Position.z > clip_max_z)
+      color = color & 0x80ffffff;  // Set alpha to 50% to fade for z.
+    // Position is y,x,z (note swap and negation).
+    add_position_marker_vertices(-entity->Position.x, -entity->Position.y, entity->Heading, size, color, vertices);
+    if (++count >= kMaxTrackedEntities) break;  // Buffer safety limit.
   }
 }

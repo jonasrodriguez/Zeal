@@ -1,5 +1,7 @@
 #include "chetotarget.h"
 
+#include <algorithm>
+
 #include "callbacks.h"
 #include "commands.h"
 #include "entity_manager.h"
@@ -10,14 +12,13 @@
 #include "zone_map.h"
 
 void ChetoTarget::Disable() {
-  targets.clear();
-  ZealService::get_instance()->zone_map->clear();
+  tracked_spawn_ids.clear();
+  ZealService::get_instance()->zone_map->clear_tracked_spawn_ids();
 }
 
 void ChetoTarget::find_target(const std::string &nombre) {
 
   if (nombre.empty()) return;
-  //if (!std::all_of(nombre.begin(), nombre.end(), ::isdigit)) return;
 
   auto entity_manager = ZealService::get_instance()->entity_manager.get();
   if (!entity_manager) {
@@ -43,11 +44,15 @@ void ChetoTarget::find_target(const std::string &nombre) {
   }
 
   if (found.empty()) {
-    Zeal::Game::print_chat("ChetoTarget: No se han encontrado npcs con nombre '%s'.", nombre.c_str());
+    Zeal::Game::print_chat("ChetoTarget: No entities found matching '%s'.", nombre);
     return;
   }
 
-  targets.insert(targets.end(), found.begin(), found.end());
+  for (auto *entity : found) {
+    if (entity) tracked_spawn_ids.push_back(entity->SpawnId);
+  }
+  ZealService::get_instance()->zone_map->set_tracked_spawn_ids(tracked_spawn_ids);
+
   auto first = found.front();
   Zeal::Game::set_target(first);
   if (found.size() == 1) {
@@ -58,52 +63,23 @@ void ChetoTarget::find_target(const std::string &nombre) {
 }
 
 void ChetoTarget::find_item(const std::string &item_visual_id) {
-  
   if (!std::all_of(item_visual_id.begin(), item_visual_id.end(), ::isdigit)) return;
 
-  auto intvalue = std::atoi(item_visual_id.c_str());    
+  auto intvalue = std::atoi(item_visual_id.c_str());
   auto entities = ZealService::get_instance()->entity_manager.get()->GetAll();
 
   Zeal::Game::print_chat("ChetoTarget: Looking for item with visual id '%d'.", intvalue);
 
   for (auto entity : entities) {
     if (!entity.second) continue;
-    
+
     if (entity.second->EquipmentPrimaryItemType == intvalue) {
-
       Zeal::Game::print_chat("ChetoTarget: Found NPC %s with item '%d'.", entity.second->Name, intvalue);
-      targets.push_back(entity.second);
+      tracked_spawn_ids.push_back(entity.second->SpawnId);
     }
   }
-}
 
-void ChetoTarget::tick() {
-
-  if (targets.empty()) return;
-
-  auto now = GetTickCount64();
-  if (!is_updating && (now - markers_timestamp >= 1000)) {
-    markers_timestamp = now;
-    target_index = 0;
-    is_updating = true;
-    ZealService::get_instance()->zone_map->clear();
-  }
-
-  if (is_updating) {
-    if (target_index < targets.size()) {
-      auto target = targets[target_index++];
-      if (target) {
-        ZealService::get_instance()->zone_map->add_marker(static_cast<int>(target->Position.x),
-                                                          static_cast<int>(target->Position.y), 
-                                                          target->Name,
-                                                          false);      
-      }
-      return;  // one marker per tick, more work left
-    }
-
-    // target_index reached the end this tick — finish up, don't return early
-    is_updating = false;
-  }
+  ZealService::get_instance()->zone_map->set_tracked_spawn_ids(tracked_spawn_ids);
 }
 
 ChetoTarget::ChetoTarget(ZealService *zeal) {
@@ -111,8 +87,6 @@ ChetoTarget::ChetoTarget(ZealService *zeal) {
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::CharacterSelect);
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::EndMainLoop);
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::EnterZone);
-
-  zeal->callbacks->AddGeneric([this]() { tick(); });
 
   // Register the /chetotarget command.
   zeal->commands_hook->Add("/chetotarget", {"/ct"}, "Tries to target far away target.",

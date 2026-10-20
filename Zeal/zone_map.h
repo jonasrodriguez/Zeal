@@ -158,6 +158,9 @@ class ZoneMap {
   void process_on_move(const Zeal::GameUI::CXRect &rect);
   void process_on_resize(int width, int height);
 
+  void set_tracked_spawn_ids(const std::vector<WORD> &ids) { tracked_spawn_ids = ids; }
+  void clear_tracked_spawn_ids() { tracked_spawn_ids.clear(); }
+
  private:
   enum class LabelType { Normal, LeftJustified, AddMarker, PositionLabel };
 
@@ -308,6 +311,9 @@ class ZoneMap {
   bool add_map_data_from_file(const std::string &filename, CustomMapData &map_data);
   void assemble_zone_map(const char *zone_name, CustomMapData &map_data);
 
+  void render_tracked_labels(IDirect3DDevice8 &device);
+  void add_tracked_position_vertices(std::vector<MapVertex> &vertices) const;
+
   // SidlWnd support methods
   bool ui_is_visible() const;
   void ui_hide();
@@ -343,8 +349,10 @@ class ZoneMap {
   bool always_align_to_center = false;
   int map_level_index = 0;
   int dynamic_labels_zone_id = kInvalidZoneId;
-  std::vector<DynamicLabel> dynamic_labels_list;  // Optional temporary labels.
+  std::vector<DynamicLabel> dynamic_labels_list;  // Optional temporary labels.  
   std::unordered_map<int, std::unique_ptr<CustomMapData>> map_data_cache;
+
+  std::vector<WORD> tracked_spawn_ids;
 
   D3DVIEWPORT8 viewport = {};   // On-screen coordinates of viewport.
   LONG max_viewport_width = 0;  // Full game window (ignores /viewport) or screen size (external).
