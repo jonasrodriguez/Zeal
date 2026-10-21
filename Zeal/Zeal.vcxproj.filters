@@ -432,6 +432,15 @@
     <ClInclude Include="get_behind.h">
       <Filter>Header Files\juank\helpers</Filter>
     </ClInclude>
+    <ClInclude Include="assist_target.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="target.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="button_helper.h">
+      <Filter>Header Files\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -736,6 +745,9 @@
     </ClCompile>
     <ClCompile Include="get_behind.cpp">
       <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="button_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

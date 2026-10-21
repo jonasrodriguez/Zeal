@@ -141,6 +141,7 @@
     <ClInclude Include="come_close.h" />
     <ClInclude Include="entity_helper.h" />
     <ClInclude Include="get_behind.h" />
+    <ClInclude Include="button_helper.h" />
     <ClInclude Include="Iautomelee.h" />
     <ClInclude Include="position_helper.h" />
     <ClInclude Include="operator_overloads.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="auto_face.cpp" />
     <ClCompile Include="bandolier.cpp" />
     <ClCompile Include="bitmap_font.cpp" />
+    <ClCompile Include="button_helper.cpp" />
     <ClCompile Include="chainlead.cpp" />
     <ClCompile Include="chat_helper.cpp" />
     <ClCompile Include="character_select.cpp" />

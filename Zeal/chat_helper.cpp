@@ -8,12 +8,21 @@ void ChatHelper::join_channel() {
   }
 }
 
-std::string ChatHelper::assist_listener(const char *message, int color_index) { 
+std::string ChatHelper::assist_listener(const std::string &message) { 
 
-  if (!message) return std::string();
+  if (message.empty()) return std::string();
 
   std::cmatch match;
-  if (!std::regex_search(message, match, ASSIST_PATTTERN)) return std::string();
+  if (!std::regex_search(message.c_str(), match, ASSIST_PATTTERN)) return std::string();
   
   return match[1].str();
+}
+
+std::string ChatHelper::enrage_listener(const std::string& message) {
+  if (message.empty()) return std::string();
+
+  std::cmatch match;
+  if (!std::regex_search(message.c_str(), match, ENRAGE_PATTTERN)) return std::string();
+
+  return match[0].str();
 }
