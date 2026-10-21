@@ -44,15 +44,33 @@ void AutoMelee::handle_print_chat(const char *message, int color_index) {
   }
 }
 
+void AutoMelee::handle_damage_packet(const Zeal::Packets::Damage_Struct *dmg) {
+  if (!handler || !dmg) return;
+
+  // Notify autorogue when a mob hits us so it can stop attacking and hide.
+  if (auto *rogue = dynamic_cast<AutoRogue *>(handler.get())) {
+    rogue->handle_damage(dmg);
+  }
+}
+
 AutoMelee::AutoMelee(ZealService *zeal) {
   // Disable on zone transitions and character select.
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::CharacterSelect);
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::EndMainLoop);
   zeal->callbacks->AddGeneric([this]() { Disable(); }, callback_type::EnterZone);
 
-    // Hook all printed chat lines to match for combat data
+  // Hook all printed chat lines to match for combat data
   zeal->chat_hook->add_print_chat_callback(
       [this](const char *data, int color_index) { handle_print_chat(data, color_index); });
+
+  // Watch OP_Damage so the active handler (e.g. autorogue) can react to us being hit by a mob.
+  zeal->callbacks->AddPacket(
+      [this](UINT opcode, char *buffer, UINT len) {
+        if (opcode == Zeal::Packets::Damage && len >= sizeof(Zeal::Packets::Damage_Struct))
+          handle_damage_packet(reinterpret_cast<Zeal::Packets::Damage_Struct *>(buffer));
+        return false;  // Never swallow damage packets.
+      },
+      callback_type::WorldMessage);
 
   // Poll on each main loop iteration (same pattern as autoability).
   zeal->callbacks->AddGeneric([this]() { tick(); });

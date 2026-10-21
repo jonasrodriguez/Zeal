@@ -13,6 +13,7 @@ bool AutoRogue::start(const std::vector<std::string>& arguments) {
   state = State::On;
   clickies = false;
   hides = false;
+  hit_by_mob = false;
   for (const auto& arg : arguments) {
     if (Zeal::String::compare_insensitive(arg, "clickies")) {
       clickies = true;
@@ -86,6 +87,17 @@ void AutoRogue::tick() {
 
   ULONGLONG now = GetTickCount64();
 
+  // A mob hit us (flagged from the OP_Damage hook): stop auto attacking and press Hide to shed aggro.
+  if (hit_by_mob) {
+    hit_by_mob = false;
+    Zeal::Game::do_autoattack(false);
+    if (hide_btn && !hide_btn->Checked) {
+      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
+          reinterpret_cast<Zeal::GameUI::SidlWnd*>(hide_btn), 0, hide_slot, 0);
+    }
+    return;
+  }
+
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
 
   if (now - last_interval_time >= kCheckIntervalMs) {
@@ -118,4 +130,18 @@ void AutoRogue::tick() {
       ForwardCommand("/use Ring of Dain Frostreaver IV");
     }
   }  
+}
+
+void AutoRogue::handle_damage(const Zeal::Packets::Damage_Struct* dmg) {
+  if (state != State::On || !dmg || dmg->damage <= 0) return;  // Only landed hits count.
+
+  auto* self = Zeal::Game::get_self();
+  if (!self || dmg->target != self->SpawnId) return;  // Not us taking the hit.
+  if (dmg->source == self->SpawnId) return;           // Ignore self-inflicted damage.
+
+  // Only react to a mob (NPC) hitting us, not players or environmental damage.
+  auto* source = Zeal::Game::get_entity_by_id(dmg->source);
+  if (!source || source->Type != Zeal::GameEnums::NPC) return;
+
+  hit_by_mob = true;
 }

@@ -8,6 +8,7 @@
 #include "chat_helper.h"
 #include "auto_face.h"
 #include "spell_helper.h"
+#include "target.h"
 
 class AutoRanger {
  public:
@@ -47,6 +48,7 @@ class AutoRanger {
   SpellHelper spell_helper;
 
   WORD casting_spell_id = kInvalidSpellId;
+  Target current_target = kResetTarget;
 
   ULONGLONG last_interval_time;
   static constexpr DWORD kCheckIntervalMs = 200;

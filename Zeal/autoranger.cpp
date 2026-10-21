@@ -41,6 +41,7 @@ void AutoRanger::enable(bool castSnare, bool castBuff) {
 void AutoRanger::disable() {
   state = Idle;
   auto_ranger = false;
+  current_target = kResetTarget;
   spell_helper.reset_spells(spellset);
 }
 
@@ -52,6 +53,7 @@ void AutoRanger::handle_chat(const char *message, int color_index) {
   if (!target.empty()) {
     Zeal::Game::print_chat(std::format("AutoRanger: Assisting on {}", target));
     Zeal::Game::set_target(nullptr);
+    current_target = kResetTarget;
     ForwardCommand(std::format("/assist {}", target));
     last_interval_time = GetTickCount64();
     state = Face;
@@ -90,10 +92,16 @@ void AutoRanger::tick() {
 }
 
 void AutoRanger::tick_face() { 
-  if (!Zeal::Game::get_target()) {
-    state = Fire;
+
+  auto target = Zeal::Game::get_target();
+  if (!target) {
+    Zeal::Game::print_chat("AutoRanger: Assist failed!");
+    state = Idle;
     return;
   }
+
+  current_target.entity = target;
+
   auto_face.face_target();
   if (cast_snare) {
     state = Snare;    
@@ -105,6 +113,7 @@ void AutoRanger::tick_face() {
 void AutoRanger::tick_snare() {
   if (spell_helper.cast_spell(snare)) {
     Zeal::Game::print_chat("AutoRanger: Esnared!");
+    current_target.snared = true;
     state = Fire;
   }
 }
@@ -122,6 +131,13 @@ void AutoRanger::tick_attack() {
     return;
   }
 
+  // If mob is below 75% health, try to snare it
+  if (!current_target.snared && target && target->HpCurrent > (target->HpMax * 0.75)) {
+    state = Snare;
+    return;
+  }
+
+  // If mob is within 30 units, melee otherwise keep ranging
   Vec3 targer_position = target->Position;
   Vec3 player_position = Zeal::Game::get_self()->Position;
 
