@@ -91,6 +91,15 @@ void AutoEnchanter::tick_idle() {
   
   // Check charm break !
   if (my_pet && !Zeal::Game::get_pet()) {
+
+    // Is pet dead ??
+    if (my_pet->Type >= Zeal::GameEnums::EntityTypes::NPCCorpse || my_pet->HpCurrent <= 0) {
+      Zeal::Game::print_chat("AutoEnchanter: Pet %s is dead, reset pet", my_pet->Name);
+      state = Idle;
+      my_pet = nullptr;
+      return;
+    }
+
     state = Break;
     return;
   }
