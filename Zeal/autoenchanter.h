@@ -19,7 +19,7 @@ class AutoEnchanter {
   void disable();
 
  private:
-  static constexpr int STUN_RANGE = 80;
+  static constexpr int STUN_RANGE = 60;
 
   ChatHelper chat_helper;
   AutoFace auto_face;
@@ -40,8 +40,8 @@ class AutoEnchanter {
   bool auto_enchanter = false;
   EncState state = Idle;
 
-  Spell stun{-1, 1696}; // Color Slant
-  Spell charm{-1, 1705};  // Boltran`s Agacerie
+  Spell stun{-1, 3359};   // Word of Morell
+  Spell charm{-1, 3355};  // Command of Druzzil
   SpellSet spellset{&stun, &charm};
   SpellHelper spell_helper;
 

@@ -24,7 +24,7 @@ void AutoEnchanter::enable(bool assist, bool spam_sos) {
 
   spell_helper.search_spells(spellset);
   if (spell_helper.missing_spell(spellset)) {
-    Zeal::Game::print_chat("AutoEnchanter: Missing \"Boltran\" o \"Color Slant\".");
+    Zeal::Game::print_chat("AutoEnchanter: Missing \"Command of Druzzil\" o \"Word of Morell\".");
     auto_enchanter = false;
     return;
   }
@@ -145,25 +145,25 @@ void AutoEnchanter::tick_break() {
   Vec3 player_position = self->Position;
 
   float distance = player_position.Dist2D(pet_position);
-  // If pet is close, stun it, otherwise try to recharm
+  Zeal::Game::print_chat("AutoEnchanter: Esperando a que este cerca para stun: %.2f", my_pet->Name, distance);
   if (distance <= STUN_RANGE) {
     Zeal::Game::print_chat("AutoEnchanter: Stun pet %s", my_pet->Name);
     state = Stun;
-  } else {
+  } /*else {
     Zeal::Game::print_chat("AutoEnchanter: Pet %s is too far away, try to recharm", my_pet->Name);
     state = Charm;
-  }
+  }*/
 }
 
 void AutoEnchanter::tick_stun() {
-  if (spell_helper.cast_spell(stun, true)) {
+  if (spell_helper.cast_spell(stun)) {
     Zeal::Game::print_chat("AutoEnchanter: Stunned!");
     state = Charm;
   }
 }
 
 void AutoEnchanter::tick_charm() {
-  if (spell_helper.cast_spell(charm)) {
+  if (spell_helper.cast_spell(charm, true)) {
     Zeal::Game::print_chat("AutoEnchanter: Charmed!");
     state = Idle;
   }
