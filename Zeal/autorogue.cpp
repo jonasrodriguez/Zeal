@@ -2,9 +2,11 @@
 
 #include "game_addresses.h"
 #include "game_functions.h"
-#include "game_structures.h"
+
 #include "string_util.h"
 #include "zeal.h"
+
+#include "chat_helper.h"
 
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
@@ -23,52 +25,23 @@ bool AutoRogue::start(const std::vector<std::string>& arguments) {
       hides = true;
       break;
     }
+    if (Zeal::String::compare_insensitive(arg, "stop")) {
+      stop_on_hit = true;
+      break;
+    }
   }
-  Zeal::Game::print_chat("AutoRogue: Clickies: %s, Hide: %s", clickies ? "ON" : "OFF", hides ? "ON" : "OFF");
+  Zeal::Game::print_chat("AutoRogue: Clickies: %s, Hide: %s, Stop on Hit: %s", clickies ? "ON" : "OFF", hides ? "ON" : "OFF", stop_on_hit);
   return find_hotbuttons();
 }
 
 bool AutoRogue::find_hotbuttons() {
-  backstab_btn = nullptr;
-  hide_btn = nullptr;
-
-  const std::string backstab_label = "Backstab";
-  const std::string hide_label = "Hide";
-  const std::string evade_label = "Evade";
-  const std::string clickies_label = "Clickies";
-
-  auto* hb_wnd = Zeal::Game::Windows->HotButton;
-  if (!hb_wnd) {
-    Zeal::Game::print_chat("AutoMelee: Error, barra de hotbuttons innacesible.");
+  
+  if (!ButtonHelper::find_hotbuttons(buttons)) {
+    Zeal::Game::print_chat("AutoRogue: Error, no se pudieron encontrar los hotbuttons.");
     return false;
   }
 
-  for (int slot = 0; slot < 10; ++slot) {
-    Zeal::GameUI::BasicWnd* btn = hb_wnd->GetChildItem("HB_Button" + std::to_string(slot + 1), false);
-    if (!btn) continue;
-
-    const char* text = btn->Text.CastToCharPtr();
-    if (!text) continue;
-
-    if (Zeal::String::compare_insensitive(std::string(text), backstab_label)) {
-      backstab_btn = btn;
-      backstab_slot = slot;
-    }
-    if (Zeal::String::compare_insensitive(std::string(text), hide_label)) {
-      hide_btn = btn;
-      hide_slot = slot;
-    }
-    if (Zeal::String::compare_insensitive(std::string(text), evade_label)) {
-      evade_btn = btn;
-      evade_slot = slot;
-    }
-    if (Zeal::String::compare_insensitive(std::string(text), clickies_label)) {
-      clickies_btn = btn;
-      clickies_slot = slot;
-    }
-  }
-
-  if (!backstab_btn) {
+  if (!backstab_button.button) {
     Zeal::Game::print_chat("AutoRogue: Error, hotbutton 'Backstab' no encontrado.");
     return false;
   }
@@ -76,8 +49,33 @@ bool AutoRogue::find_hotbuttons() {
   return true;
 }
 
+void AutoRogue::handle_chat(const std::string& message) {
+
+  if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
+
+  auto enraged = ChatHelper::enrage_listener(message);
+  if (enraged.empty()) return;
+  
+  auto target = Zeal::Game::get_target();
+
+  Zeal::Game::print_chat("AutoRogue: Enraged message detected: %s", enraged.c_str());
+
+  // Compare enraged with target name
+  if (Zeal::String::compare_insensitive(target->Name, enraged)) {
+    Zeal::Game::print_chat("AutoRogue: Your target %s enraged, carefull !", enraged.c_str());
+    target_enraged = target;
+  }
+}
+
 void AutoRogue::tick() {
   if (!Zeal::Game::is_in_game()) return;
+
+  if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) {
+    hit_by_mob = false;
+    target_enraged = nullptr;
+
+    return;
+  }
   
   // Skip process while stunned
   Zeal::GameStructures::GAMECHARINFO* char_info = Zeal::Game::get_char_info();
@@ -87,45 +85,38 @@ void AutoRogue::tick() {
 
   ULONGLONG now = GetTickCount64();
 
-  // A mob hit us (flagged from the OP_Damage hook): stop auto attacking and press Hide to shed aggro.
-  if (hit_by_mob) {
+  // A mob hit us stop auto attacking and press hide
+  if (target_enraged && hit_by_mob || stop_on_hit && hit_by_mob) {
+    Zeal::Game::print_chat("AutoRogue: Hit by mob, stopping autoattack and pressing hide.");
     hit_by_mob = false;
     Zeal::Game::do_autoattack(false);
-    if (hide_btn && !hide_btn->Checked) {
-      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(hide_btn), 0, hide_slot, 0);
+    if (hide_button.button && !hide_button.button->Checked) {
+      ButtonHelper::click_button(hide_button);
     }
     return;
   }
 
-  if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
-
   if (now - last_interval_time >= kCheckIntervalMs) {
     last_interval_time = now;
 
-    if (backstab_btn && !backstab_btn->Checked) {
-      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(backstab_btn), 0, backstab_slot, 0);
+    if (backstab_button.button && !backstab_button.button->Checked) {
+      ButtonHelper::click_button(backstab_button);
       return;
     }
 
-    if (hides && hide_btn && !hide_btn->Checked) {
+    if (hides && hide_button.button && !hide_button.button->Checked) {
       // Do evade if avialable, its just faster
-      if (evade_btn) {
-        reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-            reinterpret_cast<Zeal::GameUI::SidlWnd*>(evade_btn), 0, evade_slot, 0);
+      if (evade_button.button) {
+        ButtonHelper::click_button(evade_button);
         return;
       }
-
-      return;
     }
   }
 
   if (clickies && now - last_use_item_time >= kUseItemRetryMs) {
     last_use_item_time = now;
-    if (clickies_btn) {
-      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(clickies_btn), 0, clickies_slot, 0);
+    if (clickies_button.button) {
+      ButtonHelper::click_button(clickies_button);
     } else {
       ForwardCommand("/use Ring of Dain Frostreaver IV");
     }

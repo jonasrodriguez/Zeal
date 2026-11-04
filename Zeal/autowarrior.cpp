@@ -9,6 +9,8 @@
 #include "string_util.h"
 #include "zeal.h"
 
+#include "chat_helper.h"
+
 // Forward declaration from commands.cpp - executes a command bypassing the detour.
 void ForwardCommand(std::string cmd);
 
@@ -31,43 +33,14 @@ bool AutoWarrior::start(const std::vector<std::string>& arguments) {
 }
 
 bool AutoWarrior::find_hotbuttons() {
-  kick_btn = nullptr;
-  clickies_btn = nullptr;
-  taunt_btn = nullptr;
 
-  const std::string kick_label = "Kick";
-  const std::string clickies_label = "Clickies";
-  const std::string taunt_label = "Taunt";
-
-  auto* hb_wnd = Zeal::Game::Windows->HotButton;
-  if (!hb_wnd) {
-    Zeal::Game::print_chat("AutoMelee: Error, barra de hotbuttons innacesible.");
+  if (!ButtonHelper::find_hotbuttons(buttons)) {
+    Zeal::Game::print_chat("AutoWarrior: Error, no se pudieron encontrar los hotbuttons.");
     return false;
   }
 
-  for (int slot = 0; slot < 10; ++slot) {
-    Zeal::GameUI::BasicWnd* btn = hb_wnd->GetChildItem("HB_Button" + std::to_string(slot + 1), false);
-    if (!btn) continue;
-
-    const char* text = btn->Text.CastToCharPtr();
-    if (!text) continue;
-
-    if (Zeal::String::compare_insensitive(std::string(text), kick_label)) {
-      kick_btn = btn;
-      kick_slot = slot;
-    }
-    if (Zeal::String::compare_insensitive(std::string(text), clickies_label)) {
-      clickies_btn = btn;
-      clickies_slot = slot;
-    }
-    if (Zeal::String::compare_insensitive(std::string(text), taunt_label)) {
-      taunt_btn = btn;
-      taunt_slot = slot;
-    }
-  }
-
-  if (!kick_btn) {
-    Zeal::Game::print_chat("AutoMelee: Error, hotbutton 'Kick' no encontrado.");
+  if (!kick_button.button) {
+    Zeal::Game::print_chat("AutoWarrior: Error, hotbutton 'Kick' no encontrado.");
     return false;
   }
 
@@ -91,19 +64,17 @@ void AutoWarrior::handle_chat(const std::string &message) {
   }
 
   //Pattern: Someone has become ENRAGED
-  static const std::regex enraged_pattern(R"(^(\S+) has become ENRAGED)");
-  std::smatch match;
-  if (!std::regex_search(message, match, enraged_pattern)) return;
+  auto enraged = ChatHelper::enrage_listener(message);
+  if (enraged.empty()) return;
 
-  const std::string name = match[1].str();
-  if (name.empty()) return;
-  Zeal::Game::print_chat("AutoMelee: Cuidado ! Enrage de " + name);
-  Zeal::GameStructures::Entity* target = Zeal::Game::get_target();
-  if (target) {
-    if (Zeal::String::compare_insensitive(name, target->Name)) {
-      Zeal::Game::print_chat("AutoMelee: Enrage mob and target are the same");
-      state = State::Enraged;
-    }
+  auto target = Zeal::Game::get_target();
+
+  Zeal::Game::print_chat("AutoWarrior: Enraged message detected: %s", enraged.c_str());
+
+  // Compare enraged with target name
+  if (Zeal::String::compare_insensitive(target->Name, enraged)) {
+    Zeal::Game::print_chat("AutoWarrior: Your target %s enraged, carefull !", enraged.c_str());
+    state = State::Enraged;
   }
 }
 
@@ -143,16 +114,13 @@ void AutoWarrior::tick() {
     return;
   }
 
-  // Kick !
   if (now - last_interval_time >= kCheckIntervalMs) {
-    if (kick_btn && !kick_btn->Checked) {
-      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(kick_btn), 0, kick_slot, 0);
+    if (kick_button.button && !kick_button.button->Checked) {
+      ButtonHelper::click_button(kick_button);
       return;
     }
-    if (taunt && taunt_btn && !taunt_btn->Checked) {
-      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(taunt_btn), 0, taunt_slot, 0);
+    if (taunt && taunt_button.button && !taunt_button.button->Checked) {
+      ButtonHelper::click_button(taunt_button);
       return;
     }
   }
@@ -160,9 +128,8 @@ void AutoWarrior::tick() {
   if (clickies && now - last_use_item_time >= kUseItemRetryMs) {
     last_use_item_time = now;
 
-    if (clickies_btn) {
-      reinterpret_cast<void(__fastcall*)(Zeal::GameUI::SidlWnd*, int, int, int)>(0x4209bd)(
-          reinterpret_cast<Zeal::GameUI::SidlWnd*>(clickies_btn), 0, clickies_slot, 0);
+    if (clickies_button.button) {
+      ButtonHelper::click_button(clickies_button);
     }
   }
 }

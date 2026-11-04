@@ -47,7 +47,7 @@ void AutoEnchanter::disable() {
 bool AutoEnchanter::handle_chat_channel(const char *message, int color_index) {
   if (!auto_enchanter || !assist  || !message || state != Idle) return false;
 
-  std::string target = chat_helper.assist_listener(message, color_index);
+  std::string target = ChatHelper::assist_listener(message);
   if (!target.empty()) {
     Zeal::Game::print_chat(std::format("AutoEnchanter: Assisting on {}", target));
     Zeal::Game::set_target(nullptr);

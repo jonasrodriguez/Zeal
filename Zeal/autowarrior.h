@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Windows.h>
-
 #include <string>
 
 #include "Iautomelee.h"
 #include "game_ui.h"
+
+#include "button_helper.h"
 
 class AutoWarrior : public IAutoMelee {
  public:
@@ -23,18 +24,15 @@ class AutoWarrior : public IAutoMelee {
   enum class Discipline { None, Defensive, Evasive, Off };
 
   bool find_hotbuttons();
-  void handle_combat(ULONGLONG now);
   State state = State::Off;
 
   bool clickies = false;
   bool taunt = false;
 
-  int kick_slot = -1;
-  int clickies_slot = -1;
-  int taunt_slot = -1;
-  Zeal::GameUI::BasicWnd *kick_btn = nullptr;
-  Zeal::GameUI::BasicWnd *clickies_btn = nullptr;
-  Zeal::GameUI::BasicWnd *taunt_btn = nullptr;
+  Button kick_button{ButtonHelper::kick_label};
+  Button taunt_button{ButtonHelper::taunt_label};
+  Button clickies_button{ButtonHelper::clickies_label};
+  Buttons buttons{&kick_button, &taunt_button, &clickies_button};
 
   Discipline discipline = Discipline::None;
   ULONGLONG discipline_start_time = 0;

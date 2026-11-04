@@ -24,4 +24,6 @@ class ButtonHelper {
   static constexpr const char* hide_label = "Hide";
   static constexpr const char* evade_label = "Evade";
   static constexpr const char* clickies_label = "Clickies";
+  static constexpr const char* taunt_label = "Taunt";
+  static constexpr const char* kick_label = "Kick";
 };

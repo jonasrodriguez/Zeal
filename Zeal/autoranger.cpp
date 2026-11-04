@@ -49,7 +49,7 @@ void AutoRanger::handle_chat(const char *message, int color_index) {
   if (!auto_ranger || !message) return;
   if (state == Buff) return;
 
-  auto target = chat_helper.assist_listener(message, color_index);
+  auto target = ChatHelper::assist_listener(message);
   if (!target.empty()) {
     Zeal::Game::print_chat(std::format("AutoRanger: Assisting on {}", target));
     Zeal::Game::set_target(nullptr);
