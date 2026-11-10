@@ -38,19 +38,14 @@ void AutoMelee::Disable() {
 void AutoMelee::handle_print_chat(const char *message, int color_index) {
   if (!handler || !message) return;
 
-  // Notify autowarrior about enraged or disciplines
-  if (auto* warrior = dynamic_cast<AutoWarrior*>(handler.get())) {
-    warrior->handle_chat(message);
-  }
+  //if (auto *warrior = dynamic_cast<AutoWarrior *>(handler.get())) {
+  handler->handle_chat(message);
 }
 
 void AutoMelee::handle_damage_packet(const Zeal::Packets::Damage_Struct *dmg) {
   if (!handler || !dmg) return;
 
-  // Notify autorogue when a mob hits us so it can stop attacking and hide.
-  if (auto *rogue = dynamic_cast<AutoRogue *>(handler.get())) {
-    rogue->handle_damage(dmg);
-  }
+  handler->handle_damage(dmg);
 }
 
 AutoMelee::AutoMelee(ZealService *zeal) {

@@ -22,7 +22,9 @@ std::string ChatHelper::enrage_listener(const std::string& message) {
   if (message.empty()) return std::string();
 
   std::cmatch match;
-  if (!std::regex_search(message.c_str(), match, ENRAGE_PATTTERN)) return std::string();
+  if (!std::regex_search(message.c_str(), match, ENRAGE_PATTERN)) return std::string();
+
+  Zeal::Game::print_chat("ChatHelper: Enraged message detected: %s", match[0].str().c_str());
 
   return match[0].str();
 }

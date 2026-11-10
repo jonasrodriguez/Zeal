@@ -2,7 +2,7 @@
 
 #include "game_addresses.h"
 #include "game_functions.h"
-
+#include "game_packets.h"
 #include "string_util.h"
 #include "zeal.h"
 
@@ -25,12 +25,12 @@ bool AutoRogue::start(const std::vector<std::string>& arguments) {
       hides = true;
       break;
     }
-    if (Zeal::String::compare_insensitive(arg, "stop")) {
-      stop_on_hit = true;
-      break;
-    }
   }
-  Zeal::Game::print_chat("AutoRogue: Clickies: %s, Hide: %s, Stop on Hit: %s", clickies ? "ON" : "OFF", hides ? "ON" : "OFF", stop_on_hit);
+
+  Zeal::Game::print_chat("AutoRogue: Clickies: %s, Hide: %s, Stop on Hit: %s", 
+      clickies ? "ON" : "OFF", 
+      hides ? "ON" : "OFF");
+
   return find_hotbuttons();
 }
 
@@ -50,7 +50,7 @@ bool AutoRogue::find_hotbuttons() {
 }
 
 void AutoRogue::handle_chat(const std::string& message) {
-
+  if (state != State::On) return;
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
 
   auto enraged = ChatHelper::enrage_listener(message);
@@ -63,8 +63,23 @@ void AutoRogue::handle_chat(const std::string& message) {
   // Compare enraged with target name
   if (Zeal::String::compare_insensitive(target->Name, enraged)) {
     Zeal::Game::print_chat("AutoRogue: Your target %s enraged, carefull !", enraged.c_str());
-    target_enraged = target;
+    target_enraged = enraged;
   }
+}
+
+void AutoRogue::handle_damage(const Zeal::Packets::Damage_Struct* dmg) {
+  // if (state != State::On || !dmg || dmg->damage <= 0) return;  // Only landed hits count.
+  if (state != State::On || !dmg) return;  // Count missed hits too
+
+  auto* self = Zeal::Game::get_self();
+  if (!self || dmg->target != self->SpawnId) return;  // Not us taking the hit.
+  if (dmg->source == self->SpawnId) return;           // Ignore self-inflicted damage.
+
+  // Only react to a mob (NPC) hitting us, not players or environmental damage.
+  auto* source = Zeal::Game::get_entity_by_id(dmg->source);
+  if (!source || source->Type != Zeal::GameEnums::NPC) return;
+
+  hit_by_mob = true;
 }
 
 void AutoRogue::tick() {
@@ -72,7 +87,7 @@ void AutoRogue::tick() {
 
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) {
     hit_by_mob = false;
-    target_enraged = nullptr;
+    target_enraged.clear();
 
     return;
   }
@@ -83,19 +98,23 @@ void AutoRogue::tick() {
     return;
   }
 
-  ULONGLONG now = GetTickCount64();
-
   // A mob hit us stop auto attacking and press hide
-  if (target_enraged && hit_by_mob || stop_on_hit && hit_by_mob) {
-    Zeal::Game::print_chat("AutoRogue: Hit by mob, stopping autoattack and pressing hide.");
+  if (!target_enraged.empty() && hit_by_mob) {
+    Zeal::Game::print_chat("AutoRogue: Tu target %s esta ENRAGED y te esta pegando !", target_enraged.c_str());
+
     hit_by_mob = false;
+    target_enraged.clear();
     Zeal::Game::do_autoattack(false);
+
     if (hide_button.button && !hide_button.button->Checked) {
       ButtonHelper::click_button(hide_button);
     }
     return;
   }
 
+  ULONGLONG now = GetTickCount64();
+
+  // Backstab and hide
   if (now - last_interval_time >= kCheckIntervalMs) {
     last_interval_time = now;
 
@@ -113,6 +132,7 @@ void AutoRogue::tick() {
     }
   }
 
+  // Clickies
   if (clickies && now - last_use_item_time >= kUseItemRetryMs) {
     last_use_item_time = now;
     if (clickies_button.button) {
@@ -121,18 +141,4 @@ void AutoRogue::tick() {
       ForwardCommand("/use Ring of Dain Frostreaver IV");
     }
   }  
-}
-
-void AutoRogue::handle_damage(const Zeal::Packets::Damage_Struct* dmg) {
-  if (state != State::On || !dmg || dmg->damage <= 0) return;  // Only landed hits count.
-
-  auto* self = Zeal::Game::get_self();
-  if (!self || dmg->target != self->SpawnId) return;  // Not us taking the hit.
-  if (dmg->source == self->SpawnId) return;           // Ignore self-inflicted damage.
-
-  // Only react to a mob (NPC) hitting us, not players or environmental damage.
-  auto* source = Zeal::Game::get_entity_by_id(dmg->source);
-  if (!source || source->Type != Zeal::GameEnums::NPC) return;
-
-  hit_by_mob = true;
 }

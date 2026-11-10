@@ -1,10 +1,8 @@
 #pragma once
 
 #include <Windows.h>
-#include <string>
 
 #include "Iautomelee.h"
-#include "game_packets.h"
 #include "game_structures.h"
 #include "game_ui.h"
 
@@ -32,7 +30,6 @@ class AutoRogue : public IAutoMelee {
 
   bool clickies = false;
   bool hides = false;
-  bool stop_on_hit = false;
 
   Button backstab_button{ButtonHelper::backstab_label};
   Button hide_button{ButtonHelper::hide_label};
@@ -45,7 +42,7 @@ class AutoRogue : public IAutoMelee {
   ULONGLONG last_hide_attempt_time = 1000;
 
   bool hit_by_mob = false;
-  Zeal::GameStructures::Entity *target_enraged = nullptr;
+  std::string target_enraged;
 
   static constexpr DWORD kCheckIntervalMs = 100;
   static constexpr DWORD kUseItemRetryMs = 10000;

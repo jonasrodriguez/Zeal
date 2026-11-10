@@ -5,6 +5,7 @@
 
 #include "game_addresses.h"
 #include "game_functions.h"
+#include "game_packets.h"
 #include "game_structures.h"
 #include "string_util.h"
 #include "zeal.h"
@@ -77,6 +78,8 @@ void AutoWarrior::handle_chat(const std::string &message) {
     state = State::Enraged;
   }
 }
+
+void AutoWarrior::handle_damage(const Zeal::Packets::Damage_Struct* dmg) { return; }
 
 void AutoWarrior::tick() {
   if (!Zeal::Game::is_in_game()) return;

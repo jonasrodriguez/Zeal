@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <string>
 
 #include "Iautomelee.h"
 #include "game_ui.h"
@@ -17,7 +16,8 @@ class AutoWarrior : public IAutoMelee {
   void tick() override;
 
   const char *name() const override { return "warrior"; }
-  void handle_chat(const std::string &message);
+  void handle_chat(const std::string &message) override;
+  void handle_damage(const Zeal::Packets::Damage_Struct *dmg) override;
 
  private:
   enum class State { Off, On, Enraged, DiscOn, DiscOff };

@@ -24,6 +24,6 @@ class ChatHelper {
 
   // Expected formats:
   // "Mobname has become ENRAGED."
-  inline static const std::regex ENRAGE_PATTTERN{R"((\S+) has become ENRAGED\.)", std::regex_constants::icase};
-
-};
+  // [Wed Nov 04 18:36:50 2026] Vallon Zek has become ENRAGED.
+  inline static const std::regex ENRAGE_PATTERN{R"((.+?) has become ENRAGED\.)", std::regex_constants::icase};
+}; 
