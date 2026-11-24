@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include "Iautomelee.h"
+#include "game_structures.h"
 #include "game_ui.h"
 
 #include "button_helper.h"
@@ -27,6 +28,7 @@ class AutoMonk : public IAutoMelee {
   State state = State::Off;
 
   bool clickies = false;
+  bool stop_on_hit = false;
 
   int kick_slot = -1;
   int clickies_slot = -1;
@@ -44,6 +46,7 @@ class AutoMonk : public IAutoMelee {
 
   bool hit_by_mob = false;
   std::string target_enraged;
+  Zeal::GameStructures::Entity *attacking_mob = nullptr;
 
   static constexpr DWORD kCheckIntervalMs = 100;
   static constexpr DWORD kUseEpicMs = 8000;

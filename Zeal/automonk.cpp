@@ -3,7 +3,6 @@
 #include "game_addresses.h"
 #include "game_functions.h"
 #include "game_packets.h"
-#include "game_structures.h"
 #include "string_util.h"
 #include "zeal.h"
 
@@ -15,9 +14,14 @@ void ForwardCommand(std::string cmd);
 bool AutoMonk::start(const std::vector<std::string>& arguments) {
   state = State::On;
   clickies = false;
+  stop_on_hit = false;
   for (const auto& arg : arguments) {
     if (Zeal::String::compare_insensitive(arg, "clickies")) {
       clickies = true;
+      break;
+    }
+    if (Zeal::String::compare_insensitive(arg, "hit")) {
+      stop_on_hit = true;
       break;
     }
   }
@@ -40,6 +44,7 @@ bool AutoMonk::find_hotbuttons() {
 }
 
 void AutoMonk::handle_chat(const std::string& message) {
+  return;  // Disabled for now, we will use the damage hook instead
   if (state != State::On) return;
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
 
@@ -69,21 +74,34 @@ void AutoMonk::handle_damage(const Zeal::Packets::Damage_Struct* dmg) {
   auto* source = Zeal::Game::get_entity_by_id(dmg->source);
   if (!source || source->Type != Zeal::GameEnums::NPC) return;
 
-  hit_by_mob = true;
+  attacking_mob = source;
 }
 
 void AutoMonk::tick() {
   if (!Zeal::Game::is_in_game()) return;
 
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) {
-    hit_by_mob = false;
+    attacking_mob = nullptr;
     target_enraged.clear();
 
     return;
   }
 
+  // Si el bicho nos pega , cancelar auto ataque
+  if (stop_on_hit && attacking_mob) {
+    auto* target = Zeal::Game::get_target();
+
+    if (target && target->SpawnId == attacking_mob->SpawnId) {
+      Zeal::Game::print_chat("AutoMonk: Tu target %s te esta pegando !", Zeal::Game::get_target()->Name);
+      attacking_mob = nullptr;
+      Zeal::Game::do_autoattack(false);
+
+      return;
+    }
+  }
+
   // A mob hit us stop auto attacking && FD
-  if (!target_enraged.empty() && hit_by_mob) {
+  /* if (!target_enraged.empty() && hit_by_mob) {
     Zeal::Game::print_chat("AutoMonk: Tu target %s esta ENRAGED y te esta pegando !", target_enraged.c_str());
 
     hit_by_mob = false;
@@ -95,7 +113,7 @@ void AutoMonk::tick() {
     }
 
     return;
-  }
+  }*/
 
   ULONGLONG now = GetTickCount64();
 

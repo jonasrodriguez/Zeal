@@ -30,6 +30,7 @@ class AutoRogue : public IAutoMelee {
 
   bool clickies = false;
   bool hides = false;
+  bool stop_on_hit = false;
 
   Button backstab_button{ButtonHelper::backstab_label};
   Button hide_button{ButtonHelper::hide_label};
@@ -43,6 +44,7 @@ class AutoRogue : public IAutoMelee {
 
   bool hit_by_mob = false;
   std::string target_enraged;
+  Zeal::GameStructures::Entity *attacking_mob = nullptr;
 
   static constexpr DWORD kCheckIntervalMs = 100;
   static constexpr DWORD kUseItemRetryMs = 10000;

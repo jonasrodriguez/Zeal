@@ -15,7 +15,7 @@ bool AutoRogue::start(const std::vector<std::string>& arguments) {
   state = State::On;
   clickies = false;
   hides = false;
-  hit_by_mob = false;
+  stop_on_hit = false;
   for (const auto& arg : arguments) {
     if (Zeal::String::compare_insensitive(arg, "clickies")) {
       clickies = true;
@@ -25,11 +25,16 @@ bool AutoRogue::start(const std::vector<std::string>& arguments) {
       hides = true;
       break;
     }
+    if (Zeal::String::compare_insensitive(arg, "hit")) {
+      stop_on_hit = true;
+      break;
+    }
   }
 
   Zeal::Game::print_chat("AutoRogue: Clickies: %s, Hide: %s, Stop on Hit: %s", 
       clickies ? "ON" : "OFF", 
-      hides ? "ON" : "OFF");
+      hides ? "ON" : "OFF", 
+      stop_on_hit ? "ON" : "OFF");
 
   return find_hotbuttons();
 }
@@ -50,6 +55,7 @@ bool AutoRogue::find_hotbuttons() {
 }
 
 void AutoRogue::handle_chat(const std::string& message) {
+  return;  // Disabled for now, we will use the damage hook instead
   if (state != State::On) return;
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) return;
 
@@ -79,15 +85,14 @@ void AutoRogue::handle_damage(const Zeal::Packets::Damage_Struct* dmg) {
   auto* source = Zeal::Game::get_entity_by_id(dmg->source);
   if (!source || source->Type != Zeal::GameEnums::NPC) return;
 
-  hit_by_mob = true;
+  attacking_mob = source;
 }
 
 void AutoRogue::tick() {
   if (!Zeal::Game::is_in_game()) return;
 
   if (!Zeal::Game::get_target() || !Zeal::Game::is_autoattacking()) {
-    hit_by_mob = false;
-    target_enraged.clear();
+    attacking_mob = nullptr;
 
     return;
   }
@@ -98,7 +103,22 @@ void AutoRogue::tick() {
     return;
   }
 
-  // A mob hit us stop auto attacking and press hide
+  // Si el bicho nos pega , cancelar auto ataque e intentar hacer hide
+  if (stop_on_hit && attacking_mob) {
+    auto* target = Zeal::Game::get_target();
+
+    if (target && target->SpawnId == attacking_mob->SpawnId) {
+      Zeal::Game::print_chat("AutoRogue: Tu target %s te esta pegando !", Zeal::Game::get_target()->Name);
+      attacking_mob = nullptr;
+      Zeal::Game::do_autoattack(false);
+      if (hide_button.button && !hide_button.button->Checked) {
+        ButtonHelper::click_button(hide_button);
+      }
+      return;
+    }
+  }
+
+  /*// A mob hit us stop auto attacking and press hide
   if (!target_enraged.empty() && hit_by_mob) {
     Zeal::Game::print_chat("AutoRogue: Tu target %s esta ENRAGED y te esta pegando !", target_enraged.c_str());
 
@@ -110,7 +130,7 @@ void AutoRogue::tick() {
       ButtonHelper::click_button(hide_button);
     }
     return;
-  }
+  }*/
 
   ULONGLONG now = GetTickCount64();
 
