@@ -16,7 +16,9 @@ void ChetoFind::Disable() {
   current_target = {};
   tracked_phs.clear();
   respawn_timer = 0;
-  ZealService::get_instance()->zone_map->clear();
+
+  tracked_spawn_ids.clear();
+  ZealService::get_instance()->zone_map->clear_tracked_spawn_ids();
 }
 
 void ChetoFind::start(const std::string &name) {

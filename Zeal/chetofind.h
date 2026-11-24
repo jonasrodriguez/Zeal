@@ -42,4 +42,6 @@ class ChetoFind {
   bool active = false;
   FindTarget current_target;
   ULONGLONG scan_timestamp = 0;
+
+  std::vector<WORD> tracked_spawn_ids;
 };
