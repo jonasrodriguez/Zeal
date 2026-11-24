@@ -16,8 +16,7 @@
 
 void ForwardCommand(std::string cmd);
 
-void AutoRanger::enable(bool castSnare, bool castBuff) {
-  cast_snare = castSnare;
+void AutoRanger::enable() {
   auto_ranger = true; 
   state = Idle;
 
@@ -25,22 +24,26 @@ void AutoRanger::enable(bool castSnare, bool castBuff) {
   if (spell_helper.missing_spell(spellset)) {
     Zeal::Game::print_chat("AutoRanger: Missing \"Esnare\", \"Eagle Eye\" or \"Nature's Precision\".");
 
-    if (castSnare && snare.gem == -1) {
+    if (cast_snare && snare.gem == -1) {
       disable();
       return;
     }
-    if (castBuff && (eagle.gem == -1 || precision.gem == -1)) {
+    if (cast_buffs && (eagle.gem == -1 || precision.gem == -1)) {
       disable();
       return;
     }
   }
 
-  Zeal::Game::print_chat("AutoRanger habilitado: Snare: %s, Buffs: %s", castSnare ? "ON" : "OFF", castBuff ? "ON" : "OFF");
+  Zeal::Game::print_chat("AutoRanger habilitado: Snare: %s, Buffs: %s", 
+      cast_snare ? "ON" : "OFF",                         
+      cast_buffs ? "ON" : "OFF");
 }
 
 void AutoRanger::disable() {
   state = Idle;
   auto_ranger = false;
+  cast_snare = false;
+  cast_buffs = false;
   current_target = kResetTarget;
   spell_helper.reset_spells(spellset);
 }
@@ -68,7 +71,7 @@ void AutoRanger::tick() {
   last_interval_time = now;
 
   // Check buffs fading if idle
-  if (state != Buff) {
+  if (cast_buffs && state != Buff) {
     check_buffs();
   }
 
@@ -182,8 +185,8 @@ AutoRanger::AutoRanger(ZealService *zeal) {
   zeal->commands_hook->Add("/autoranger", {"/ranger"}, "Assist, autofire and snare",
     [this](std::vector<std::string> &args) {
         int args_size = args.size();
-        bool castSnare = false;
-        bool castBuff = false;
+        cast_snare = false;
+        cast_buffs = false;
 
         if (args_size > 1) {
             if (Zeal::String::compare_insensitive(args[1], "off")) {
@@ -194,15 +197,15 @@ AutoRanger::AutoRanger(ZealService *zeal) {
 
             for (int i = 1; i < args_size; ++i) {
                 if (Zeal::String::compare_insensitive(args[i], "snare")) {
-                    castSnare = true;
+                    cast_snare = true;
                 }
                 if (Zeal::String::compare_insensitive(args[i], "buffs")) {
-                    castBuff = true;
+                    cast_buffs = true;
                 }
             }
         }
 
-        enable(castSnare, castBuff);
+        enable();
         return true;
     });
 }

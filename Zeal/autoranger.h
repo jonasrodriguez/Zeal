@@ -15,7 +15,7 @@ class AutoRanger {
   AutoRanger(class ZealService *zeal);
   ~AutoRanger();
 
-  void enable(bool castSnare, bool castBuff);
+  void enable();
   void disable();
 
  private:
