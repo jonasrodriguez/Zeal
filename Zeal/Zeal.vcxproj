@@ -273,6 +273,8 @@
     <ClCompile Include="hide_ui_cursor.cpp" />
     <ClCompile Include="items.cpp" />
     <ClCompile Include="music.cpp" />
+	<ClCompile Include="sentry.cpp" />
+    <ClCompile Include="spell_helper.cpp" />
     <ClCompile Include="position_helper.cpp" />
     <ClCompile Include="raid_bars.cpp" />
     <ClCompile Include="raid_bars_manage.cpp" />

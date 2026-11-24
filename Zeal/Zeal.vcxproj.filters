@@ -689,9 +689,81 @@
     <ClCompile Include="bandolier.cpp">
       <Filter>Source Files\hooks</Filter>
     </ClCompile>
+ <ClCompile Include="position_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="autoranger.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="automage.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autobst.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autoenchanter.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autocleric.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="automelee.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="automonk.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autorogue.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autowarrior.cpp">
+      <Filter>Source Files\juank\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="autocombine.cpp">
+      <Filter>Source Files\juank\tradeskills</Filter>
+    </ClCompile>
+    <ClCompile Include="autochain.cpp">
+      <Filter>Source Files\juank\raid</Filter>
+    </ClCompile>
+    <ClCompile Include="autoability.cpp">
+      <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="chainlead.cpp">
+      <Filter>Source Files\juank\raid</Filter>
+    </ClCompile>
+    <ClCompile Include="chetotarget.cpp">
+      <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="come_close.cpp">
+      <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="chat_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="sentry.cpp">
+      <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="auto_face.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="spell_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="chetofind.cpp">
+      <Filter>Source Files\juank\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="get_behind.cpp">
+      <Filter>Source Files\juank\helpers</Filter>	
+	</ClCompile> 
     <ClCompile Include="mouseover_display.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="button_helper.cpp">
+      <Filter>Source Files\helpers</Filter>
+    </ClCompile>	
     <ClCompile Include="spell_effects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
